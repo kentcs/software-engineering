@@ -5,10 +5,13 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from time import sleep
 
+options = webdriver.ChromeOptions()
+options.add_argument("--headless")
+
 
 @given("we have a browser")
 def step_impl(context):
-    context.browser = webdriver.Chrome()
+    context.browser = webdriver.Chrome(options=options)
 
 
 @when("go to Wikipedia")

@@ -19,3 +19,20 @@ Feature: Inventors on wikipedia get credit
        And we search for "helicopter"
       Then "Sikorsky" will be in the page content
        And close the browser
+
+  Scenario Outline: Inventors
+     Given we have a browser
+      When go to Wikipedia
+       And we search for "<invention>"
+      Then "<inventor>" will be in the page content
+       And close the browser
+
+    Examples: Electronics
+     |invention     | inventor  |
+     |light bulb    | Edison     |
+     |radio         | Marconi    |
+
+    Examples: Aviation
+     |invention     | inventor  |
+     |airplane      | Wright     |
+     |helicopter    | Sikorsky   |
