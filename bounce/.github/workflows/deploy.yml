@@ -1,0 +1,49 @@
+name: Deploy bounce to cassini
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  HOST: cassini.cs.kent.edu
+  USER: bounce
+  REMOTE_DIR: /home/bounce/bounce
+  PORT: "12345"
+  SCREEN_NAME: bounce-http
+  SSH_OPTIONS: -i ~/.ssh/id_rsa -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install SSH key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.ID_RSA }}
+          name: id_rsa
+          known_hosts: ${{ secrets.KNOWN_HOSTS }}
+
+      - name: Deploy application files
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          TARGET="$USER@$HOST"
+          RUN="ssh $SSH_OPTIONS $TARGET"
+          COPY="scp $SSH_OPTIONS -r"
+
+          $RUN "set -eu; mkdir -p '$REMOTE_DIR'"
+          $RUN "set -eu; if screen -list | grep -q '$SCREEN_NAME'; then screen -S '$SCREEN_NAME' -X quit; fi"
+          $RUN "set -eu; rm -f '$REMOTE_DIR/index.html' '$REMOTE_DIR/style.css' '$REMOTE_DIR/sketch.js' '$REMOTE_DIR/README.md' '$REMOTE_DIR/LICENSE'; rm -rf '$REMOTE_DIR/docs'"
+
+          $COPY index.html style.css sketch.js README.md LICENSE "$TARGET:$REMOTE_DIR/"
+          $COPY docs "$TARGET:$REMOTE_DIR/"
+
+          $RUN "set -eu; cd '$REMOTE_DIR'; screen -dmS '$SCREEN_NAME' bash -lc 'cd \"$REMOTE_DIR\" && export PORT=$PORT && python3 -m http.server \"$PORT\"'"
+          $RUN "set -eu; pwd; whoami; ls -la '$REMOTE_DIR'"
