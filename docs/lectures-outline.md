@@ -39,6 +39,12 @@
   - Architectural styles (layered, client-server, microservices)
   - Tradeoffs and constraints
   - Architecture vs design
+- Head First Software Development:
+  - Chapter 5: Good-Enough Design: Getting it done with great design
+  - Appendix A: Leftovers: The top 5 topics (we didn’t cover)
+    - UML class diagrams
+    - Sequence diagrams
+    - Refactoring
 - Wikipedia:
   - https://en.wikipedia.org/wiki/Software_architecture
   - https://en.wikipedia.org/wiki/Architectural_pattern
