@@ -4,7 +4,7 @@ Software Architecture (Beyond MVC)
 
 ---
 
-## Lecture Focus
+## Focus
 
 - architectural styles
 - tradeoffs and constraints
@@ -14,16 +14,11 @@ Software Architecture (Beyond MVC)
 
 ---
 
-## Reading Selections
+## The Point
 
-Lecture 15 readings:
+Architecture is about the larger shape of the system.
 
-- SWEBOK: Software Architecture
-- Wikipedia: software architecture
-- Wikipedia: architectural pattern
-- Wikipedia: monolithic application
-- Wikipedia: microservices
-- Head First Software Development: Chapter 5 and Appendix A on UML, sequence diagrams, and refactoring
+It decides where responsibilities live, how parts connect, and how expensive later change will be.
 
 ---
 
@@ -55,12 +50,12 @@ It asks:
 
 Architecture is not decoration.
 
-It is a set of structural choices that shape:
+It is the set of structural choices that shape later work:
 
-- implementation
-- testing
-- deployment
-- future change
+- what can change locally
+- what ripples across the system
+- what teams can work on separately
+- what will be painful to undo
 
 ---
 
@@ -73,14 +68,25 @@ Both matter, but they operate at different scales.
 
 ---
 
+## The "Hard To Change Later" Test
+
+One practical test is simple:
+
+- if a decision will be painful to reverse later, it is probably architectural
+- if it is easier to change, it is more likely design
+
+That is the Fowler-style version of the idea.
+
+---
+
 ## Architecture Example
 
 Architectural choices:
 
-- layered application
-- client-server split
-- deployment in GitHub Actions
-- separate parser and UI modules
+- browser UI talks to Python routes
+- storage is hidden behind one module
+- deployment lives in GitHub Actions
+- parsing is separate from rendering
 
 ---
 
@@ -88,14 +94,24 @@ Architectural choices:
 
 Design choices:
 
-- helper function boundaries
-- variable naming
-- parser implementation details
-- one module's internal class structure
+- how `parse_score()` is split into helpers
+- what names one module uses internally
+- whether one formatter returns text or dictionaries first
+- which small data structure a module uses inside its boundary
 
 ---
 
-## MVC Is A Useful Default
+## Architectural Styles
+
+An architectural style is a recurring way of organizing software.
+
+MVC is one style.
+
+So are layers, client-server structure, and microservices.
+
+---
+
+## MVC As One Style
 
 In this course, MVC has been a reasonable clean default.
 
@@ -123,23 +139,12 @@ Some systems fit better as:
 ## MVC Diagram
 
 ```mermaid
-flowchart LR
-    view[View] --> controller[Controller]
-    controller --> model[Model]
-    model --> controller
-    controller --> view
+flowchart TD
+    browser["Browser UI<br/>index.html + sketch.js"] --> route["Controller Layer<br/>Python routes"]
+    route --> scoremodel["Model Layer<br/>scores, rules, state"]
+    scoremodel --> store["Storage<br/>scores.txt or database"]
+    route --> browser
 ```
-
----
-
-## Architectural Styles
-
-Lecture 15 emphasizes:
-
-- layered architecture
-- client-server architecture
-- monolithic structure
-- microservices structure
 
 ---
 
@@ -196,9 +201,9 @@ That means other modules do not need to know:
 
 ```mermaid
 flowchart TD
-    ui[Presentation or UI] --> app[Application Logic]
-    app --> data[Data Access Layer]
-    data --> db[Database or Storage]
+    ui["Presentation<br/>index.html + sketch.js"] --> app["Application Logic<br/>routes + score rules"]
+    app --> data["Data Access Layer<br/>read_scores / write_scores"]
+    data --> db["Storage<br/>scores.txt or database"]
 ```
 
 ---
@@ -216,6 +221,8 @@ Costs:
 - extra indirection
 - risk of bypassing layers
 - overhead for very small systems
+
+If the app is tiny, that overhead may be silly. If the app keeps growing, it may be exactly what saves it.
 
 ---
 
@@ -394,11 +401,12 @@ Examples:
 ## Workflow Diagram
 
 ```mermaid
-flowchart LR
-    input[Input] --> validate[Validate]
-    validate --> parse[Parse]
-    parse --> process[Process]
-    process --> output[Output]
+flowchart TD
+    upload["Student Upload"] --> validate["Validate File And Metadata"]
+    validate --> parse["Parse Program Or Submission"]
+    parse --> grade["Apply Rules Or Scoring"]
+    grade --> report["Generate Output Report"]
+    report --> publish["Save Result Or Return Response"]
 ```
 
 ---
@@ -499,14 +507,14 @@ Mermaid is often enough for this work.
 
 ---
 
-## Reading Map
+## Reading References
 
-Head First Software Development supports this lecture:
-
-- Chapter 5: good-enough design and maintainability
-- Appendix A: UML class diagrams
-- Appendix A: sequence diagrams
-- Appendix A: refactoring
+- SWEBOK: Software Architecture
+- Wikipedia: software architecture
+- Wikipedia: architectural pattern
+- Wikipedia: monolithic application
+- Wikipedia: microservices
+- Head First Software Development: Chapter 5 and Appendix A on UML, sequence diagrams, and refactoring
 
 ---
 

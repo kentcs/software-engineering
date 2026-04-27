@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Lecture 17: Software Quality (Beyond Testing)</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/theme/white.css" id="theme" />
+</head>
+
+<body>
+    <div class="reveal">
+        <div class="slides">
+            <section data-markdown="lecture-17-software-quality-beyond-testing.md" data-separator="^---$"
+                data-separator-vertical="^--$" data-separator-notes="^Note:"></section>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@5/plugin/markdown/markdown.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@5/plugin/notes/notes.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@5/plugin/highlight/highlight.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+
+    <script>
+        mermaid.initialize({ startOnLoad: false, theme: "default" });
+
+        function prepareMermaidBlocks() {
+            const blocks = document.querySelectorAll("pre code.language-mermaid, pre code.mermaid");
+
+            for (const block of blocks) {
+                const pre = block.parentElement;
+                const container = document.createElement("div");
+                container.className = "mermaid-host";
+                container.dataset.mermaidSource = block.innerText.trim();
+                pre.replaceWith(container);
+            }
+        }
+
+        async function renderMermaidInSlide(slide) {
+            const hosts = slide.querySelectorAll(".mermaid-host");
+
+            for (const host of hosts) {
+                if (host.dataset.rendered === "true") {
+                    continue;
+                }
+
+                const id = `mermaid-${Math.random().toString(36).slice(2)}`;
+                const { svg } = await mermaid.render(id, host.dataset.mermaidSource);
+                host.innerHTML = svg;
+                host.dataset.rendered = "true";
+            }
+        }
+
+        async function renderCurrentSlideDiagrams(event) {
+            const slide = event?.currentSlide || Reveal.getCurrentSlide();
+
+            if (!slide) {
+                return;
+            }
+
+            await renderMermaidInSlide(slide);
+        }
+
+        Reveal.initialize({
+            hash: true,
+            slideNumber: true,
+            plugins: [RevealMarkdown, RevealNotes, RevealHighlight],
+        });
+
+        Reveal.on("ready", async (event) => {
+            prepareMermaidBlocks();
+            await renderCurrentSlideDiagrams(event);
+            Reveal.layout();
+        });
+
+        Reveal.on("slidechanged", async (event) => {
+            await renderCurrentSlideDiagrams(event);
+            Reveal.layout();
+        });
+    </script>
+</body>
+
+</html>

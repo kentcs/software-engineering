@@ -4,7 +4,7 @@ Software Maintenance and Evolution
 
 ---
 
-## Lecture Focus
+## Focus
 
 - corrective, adaptive, and perfective maintenance
 - refactoring in practice
@@ -14,15 +14,13 @@ Software Maintenance and Evolution
 
 ---
 
-## Reading Selections
+## The Point
 
-Lecture 14 readings:
+Software that survives gets changed.
 
-- SWEBOK: Software Maintenance
-- Wikipedia: software maintenance
-- Wikipedia: technical debt
-- Wikipedia: code refactoring
-- Head First Software Development: Chapters 5, 7, 8, 9, and Appendix A on refactoring
+The issue is not whether change will happen.
+
+The issue is whether the team can change the system without making it worse every time.
 
 ---
 
@@ -66,13 +64,12 @@ It includes:
 
 Software changes because its context changes.
 
-Common pressures:
+Typical course examples:
 
-- newly discovered defects
-- changing user needs
-- changing runtimes and servers
-- dependency updates
-- growing code complexity
+- a bug shows up after demo day
+- a server upgrade changes runtime behavior
+- a dependency gets deprecated
+- the team tries to add one feature and discovers the file is a mess
 
 ---
 
@@ -102,16 +99,13 @@ Users experience corrective issues as failures.
 
 ## Adaptive And Perfective
 
-Adaptive:
+Adaptive example:
 
-- update code for a new Python version
-- change startup or deployment logic
+- the app worked on one server, then fails after a Python or host change
 
-Perfective:
+Perfective example:
 
-- simplify large files
-- improve naming
-- reduce duplication
+- the app still works, but one file has become big enough to ruin everyone's day
 
 ---
 
@@ -245,6 +239,8 @@ Modern teams add tighter feedback loops:
 - BDD scenarios
 - smaller maintenance changes
 
+The best teams usually mix both approaches instead of pretending one replaced the other.
+
 ---
 
 ## TDD And BDD
@@ -302,25 +298,24 @@ These are maintainability signals.
 
 For a healthy course project:
 
-- classify the kind of maintenance
-- do impact analysis before changing a risky module
-- verify fixes clearly
-- refactor in reviewable steps
-- record technical debt
+- say what kind of maintenance this is
+- do impact analysis before touching risky code
+- verify the fix and the old behavior around it
+- refactor in small reviewable steps
+- record debt instead of normalizing it
 - avoid manual server-only fixes
-- use TDD and BDD where they reduce regression risk
 
 ---
 
-## Reading Map
+## Reading References
 
-Head First Software Development reinforces this lecture:
+- SWEBOK: Software Maintenance
+- Wikipedia: software maintenance
+- Wikipedia: technical debt
+- Wikipedia: code refactoring
+- Head First Software Development: Chapters 5, 7, 8, 9, and Appendix A on refactoring
 
-- Chapter 5: design cleanup and refactoring
-- Chapter 7: testing and CI
-- Chapter 8: TDD
-- Chapter 9: iteration wrap-up and bug fixing
-- Appendix A: refactoring
+These support the maintenance, regression, and refactoring parts of the lecture.
 
 ---
 

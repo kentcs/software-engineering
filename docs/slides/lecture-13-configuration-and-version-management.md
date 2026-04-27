@@ -4,7 +4,7 @@ Configuration and Version Management (Post-Deployment)
 
 ---
 
-## Lecture Focus
+## Focus
 
 - Versioning strategies
 - Build and release concepts
@@ -12,15 +12,14 @@ Configuration and Version Management (Post-Deployment)
 
 ---
 
-## Reading Selections
+## The Point
 
-Lecture 13 readings:
+Once software is deployed, the questions get blunt:
 
-- SWEBOK: Software Configuration Management
-- Wikipedia: software configuration management
-- Wikipedia: version control
-- Wikipedia: continuous delivery
-- Head First Software Development: Chapters 6, 6.5, and 7
+- what version is running?
+- what changed?
+- can we rebuild it?
+- which commit got us here?
 
 ---
 
@@ -37,44 +36,43 @@ The team must control:
 
 ---
 
-## Software Configuration Management
+## Software Configuration Management, Or SCM
 
-SCM is the discipline of controlling software artifacts over time.
+SCM is the discipline of controlling the artifacts that define the system over time.
 
-It includes:
+In a course repo, that usually means more than code:
 
-- source code
-- dependencies
-- build scripts
-- deployment workflows
-- environment-specific settings
+- Python or JavaScript source files
+- `requirements.txt` or `package.json`
+- workflow files in `.github/workflows/`
+- server paths, ports, and secrets
 
 ---
 
 ## Configuration Items
 
-A configuration item is any artifact whose change can affect the system.
+A configuration item is any artifact whose change can change system behavior.
 
-Examples:
+Concrete example:
 
-- application code
-- `requirements.txt` or `package.json`
-- CI/CD workflow files
-- deployment scripts
-- server paths and environment variables
+- changing `sketch.js` changes the app
+- changing `requirements.txt` changes the environment
+- changing `deploy.yml` changes what gets copied and started
+- changing `PORT` changes where the app listens
 
 ---
 
 ## Version Control As The Base Layer
 
-Version control helps teams:
+Version control gives the team a history it can inspect instead of a vague memory.
 
-- track history
-- compare changes
-- collaborate safely
-- recover previous states
+That means it can:
 
-But version control alone does not tell us what is live in production.
+- compare old and new code
+- recover a previous version
+- review what changed in one pull request
+
+But version control alone still does not tell the team what is live in production.
 
 ---
 
@@ -135,13 +133,11 @@ You can build many times without releasing every build.
 
 ## Build Concerns
 
-Reliable builds depend on:
+In course terms, a build is weak when:
 
-- dependency control
-- tool versions
-- repeatable scripts
-- stable environments
-- known outputs
+- one machine has packages the repo never declared
+- the server runs a different Python version
+- a P5.js app depends on files nobody copied
 
 If the build is not repeatable, the release is weak.
 
@@ -281,23 +277,23 @@ The key point is that the deployment process is versioned and reviewable.
 
 For a healthy small project:
 
-- version the source and scripts
-- tag meaningful releases
-- keep builds repeatable
-- record the deployed version
-- avoid production-only changes
+- version the source and deploy scripts
+- tag the versions that actually matter
+- make the build reproducible on another machine
+- record what commit or tag got deployed
+- avoid fixing production by hand and then pretending that counts
 
 ---
 
-## Reading Map
+## Reading References
 
-Head First Software Development helps here by theme:
+- SWEBOK: Software Configuration Management
+- Wikipedia: software configuration management
+- Wikipedia: version control
+- Wikipedia: continuous delivery
+- Head First Software Development: Chapters 6, 6.5, and 7
 
-- Chapter 6: version control
-- Chapter 6.5: build automation
-- Chapter 7: testing and continuous integration
-
-These fit the lecture's versioning, build, and traceability concerns.
+These line up with versioning, build work, and traceability.
 
 ---
 

@@ -4,7 +4,7 @@ Design Principles (SOLID and Modularity)
 
 ---
 
-## Lecture Focus
+## Focus
 
 - the five SOLID principles
 - coupling and cohesion
@@ -26,6 +26,14 @@ Design principles affect:
 
 ---
 
+## The Point
+
+Bad design usually does not fail all at once.
+
+It gets worse a little at a time. One file picks up another job. One module starts knowing too much. Then small changes start causing trouble in places they should not.
+
+---
+
 ## Design Principles
 
 Design principles are practical rules for structuring code.
@@ -41,14 +49,13 @@ They help answer:
 ## Bad Modularity Example
 
 ```mermaid
-flowchart LR
-    app[app.py]
-    app --> ui[UI Rendering]
-    app --> parse[Parsing]
-    app --> storage[File Storage]
-    app --> api[API Calls]
-    app --> deploy[Deploy Paths]
-    app --> dom[DOM Updates]
+flowchart TD
+    app["app.py"] --> route["Route Handling"]
+    app --> parse["Input Parsing"]
+    app --> score["Score Rules"]
+    app --> storage["File Storage"]
+    app --> html["HTML Response"]
+    app --> deploy["Deploy Path Logic"]
 ```
 
 One module knows too many unrelated things.
@@ -58,12 +65,13 @@ One module knows too many unrelated things.
 ## Better Modularity Example
 
 ```mermaid
-flowchart LR
-    ui[UI Module] --> logic[Game or App Logic]
-    ui --> api[API Client]
-    logic --> parser[Parser Module]
-    logic --> storage[Storage Interface]
-    workflow[GitHub Workflow] --> deploy[Deployment Steps]
+flowchart TD
+    browser["Browser UI"] --> routes["Python Routes"]
+    routes --> parser["parser.py"]
+    routes --> scores["Score Service"]
+    scores --> storage["Storage Interface"]
+    filestore["FileScoreStorage"] --> storage
+    workflow["deploy.yml"] --> deploy["Remote Deploy Steps"]
 ```
 
 Responsibilities are separated by concern and boundary.
@@ -79,7 +87,7 @@ Lecture 15 and Lecture 16 are connected, but they are not the same topic.
 
 ---
 
-## Lecture 16 Core Questions
+## Core Questions
 
 - does this module have one coherent job?
 - does extension require risky rewrites?
@@ -108,7 +116,7 @@ Lecture 15 and Lecture 16 are connected, but they are not the same topic.
 
 - focused responsibilities
 - safer extension
-- trustworthy substitution
+- substitutions you can trust
 - smaller interfaces
 - abstractions over details
 
@@ -225,11 +233,7 @@ Add new cases without rewriting the fragile center.
 
 OCP matters when a team keeps reopening the same code for every new case.
 
-That pattern creates:
-
-- longer conditionals
-- more regression risk
-- harder review
+That usually means one new feature also means one more chance to break an old one.
 
 ---
 
@@ -440,8 +444,8 @@ Better direction:
 ## Before DIP
 
 ```mermaid
-flowchart LR
-    policy1[Score Listing Policy] --> mech1[File Access Mechanism]
+flowchart TD
+    policy1["list_scores()"] --> mech1["open('scores.txt') and parse lines"]
 ```
 
 Policy depends directly on mechanism.
@@ -451,9 +455,10 @@ Policy depends directly on mechanism.
 ## After DIP
 
 ```mermaid
-flowchart LR
-    policy2[Score Listing Policy] --> abstraction[Score Storage Interface]
-    mech2[File Storage Mechanism] --> abstraction
+flowchart TD
+    policy2["list_scores(storage)"] --> abstraction["ScoreStorage.read_scores()"]
+    mech2["FileScoreStorage"] --> abstraction
+    testdouble["FakeScoreStorage For Tests"] --> abstraction
 ```
 
 Now both policy and mechanism depend on the interface.
@@ -518,9 +523,10 @@ High coupling means one part knows too much about another part's details.
 ## Coupling Diagram
 
 ```mermaid
-flowchart LR
-    ui[UI] --> raw[Raw Server Details]
-    raw --> storage[Storage Layout]
+flowchart TD
+    ui["UI Code"] --> route["Route Contract"]
+    route --> raw["Raw Field Names<br/>player_name / points"]
+    raw --> storage["scores.txt Format Or DB Columns"]
 ```
 
 High coupling often means the wrong details are crossing boundaries.
@@ -615,12 +621,13 @@ Low cohesion:
 ## Cohesion Diagram
 
 ```mermaid
-flowchart LR
-    good[Parser Module] --> p1[tokenize]
-    good --> p2[parse]
-    bad[Misc Module] --> m1[parse]
-    bad --> m2[HTML]
-    bad --> m3[deploy]
+flowchart TD
+    good["parser.py"] --> p1["tokenize()"]
+    good --> p2["parse_program()"]
+    good --> p3["parse_score()"]
+    bad["utils.py"] --> m1["parse_score()"]
+    bad --> m2["render_html()"]
+    bad --> m3["deploy_app()"]
 ```
 
 ---
@@ -650,9 +657,9 @@ This is how a module limits what others can rely on.
 ## Interface Boundary Diagram
 
 ```mermaid
-flowchart LR
-    caller[Caller] --> api[Public Interface]
-    api --> internals[Hidden Internals]
+flowchart TD
+    caller["Route Handler"] --> api["storage.read_scores()"]
+    api --> internals["File Format And Path Stay Internal"]
 ```
 
 ---
@@ -818,15 +825,7 @@ Lecture 16 readings:
   URL: https://en.wikipedia.org/wiki/Cohesion_(computer_science)
 - Head First Software Development: Chapter 5, Chapter 8, and Appendix A
 
----
-
-## Reading Map
-
-Head First Software Development supports this lecture through:
-
-- Chapter 5: design cleanup and maintainability
-- Chapter 8: TDD and design feedback
-- Appendix A: UML, sequence diagrams, refactoring
+Head First Software Development matters here mostly for design cleanup, TDD, diagrams, and refactoring.
 
 ---
 
