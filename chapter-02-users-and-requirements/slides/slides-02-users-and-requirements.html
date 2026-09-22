@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Software Engineering: Users, Requirements, and Constraints</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="slide-assets/reveal.css">
+<link rel="stylesheet" href="slide-assets/slides.css">
+</head><body><div class="reveal"><div class="slides"><section><h1 id="users-requirements-and-constraints">Users, Requirements, and
+Constraints</h1>
+<p>Software Engineering</p>
+<p class="subtitle">
+Enough shared understanding to build something useful
+</p>
+<p class="slide-author">
+Gregory S. DeLozier, PhD
+</p>
+</section>
+<section><h2 id="enough-understanding-to-begin">Enough understanding to
+begin</h2>
+<p>“The perfect is the enemy of the good.”</p>
+<p><strong>Agree on a useful next step.</strong></p>
+<p>Keep open questions visible.</p>
+</section>
+<section><h2 id="who-depends-on-the-result">Who depends on the result?</h2>
+<table>
+<thead>
+<tr>
+<th>Person</th>
+<th>What matters to them</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Volunteer</td>
+<td>Am I confirmed?</td>
+</tr>
+<tr>
+<td>Organizer</td>
+<td>Which shifts are uncovered?</td>
+</tr>
+<tr>
+<td>Treasurer</td>
+<td>What will this cost?</td>
+</tr>
+<tr>
+<td>Next year’s officers</td>
+<td>Can we keep it running?</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section><h2 id="watch-the-work">Watch the work</h2>
+<table>
+<thead>
+<tr>
+<th>Approach</th>
+<th>Starting point</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ask about an actual event</td>
+<td>“Tell me about the last cancellation.”</td>
+</tr>
+<tr>
+<td>Watch the work</td>
+<td>“Show me how you update the schedule.”</td>
+</tr>
+<tr>
+<td>Try a rough sketch</td>
+<td>“Where do I approve them?”</td>
+</tr>
+</tbody>
+</table>
+<p><strong>What did the first description leave out?</strong></p>
+</section>
+<section><h2 id="need-requirement-design-choice">Need, requirement, design
+choice</h2>
+<table>
+<thead>
+<tr>
+<th>Level</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Need</td>
+<td>“I need to know I’m on the schedule.”</td>
+</tr>
+<tr>
+<td>Requirement</td>
+<td>View my confirmed event and shift time</td>
+</tr>
+<tr>
+<td>Design choice</td>
+<td>A green checkmark beside my name</td>
+</tr>
+</tbody>
+</table>
+<p><strong>What does the checkmark promise?</strong></p>
+</section>
+<section><h2 id="a-proposed-signup-workflow">A proposed signup workflow</h2>
+<p><img class="chart" src="slide-assets/signup-workflow.svg" alt="Request a shift, organizer reviews, then approval records a commitment and shows confirmation; rejection shows a declined request."></p>
+<p><strong>Does a request reserve a place?</strong></p>
+</section>
+<section><h2 id="a-function-hierarchy">A function hierarchy</h2>
+<p><img class="chart" src="slide-assets/function-hierarchy.svg" alt="Coordinate staffing includes managing shifts, managing commitments, and reviewing coverage, each with two smaller functions."></p>
+<p><strong>Lines mean “includes,” not “happens next.”</strong></p>
+</section>
+<section><h2 id="what-makes-it-a-car">What makes it a car?</h2>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Basic function</th>
+<th>Safety constraint</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Move people from place to place</td>
+<td>Must not catch fire in a collision at parking-lot speed</td>
+</tr>
+</tbody>
+</table>
+<p><strong>It must be a car, but it also must be an acceptable
+car.</strong></p>
+</section>
+<section><h2 id="childrens-pajamas">Children’s pajamas</h2>
+<blockquote>
+<p>Must not be flammable.</p>
+</blockquote>
+<p>Functional or nonfunctional?</p>
+<p><strong>Important or not important?</strong></p>
+</section>
+<section><h2 id="function-and-constraint">Function and constraint</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Product</th>
+<th>Function</th>
+<th>Constraint</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Candy bar</td>
+<td>Food to eat</td>
+<td>No mold</td>
+</tr>
+<tr>
+<td>Nerf gun</td>
+<td>Fire foam darts</td>
+<td>Below a specified velocity</td>
+</tr>
+<tr>
+<td>Rocket</td>
+<td>Carry a payload into flight</td>
+<td>No toxic fuel dropped on the ground</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Performing the function is only part of meeting the
+requirements.</strong></p>
+</section>
+<section><h2 id="make-quality-concrete">Make quality concrete</h2>
+<table>
+<thead>
+<tr>
+<th>Vague request</th>
+<th>A useful question</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Reliable</td>
+<td>What survives a restart?</td>
+</tr>
+<tr>
+<td>Private</td>
+<td>Who may see contact details?</td>
+</tr>
+<tr>
+<td>Easy to use</td>
+<td>Can a new member sign up without help?</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Find out what acceptable means here.</strong></p>
+</section>
+<section><h2 id="say-exactly-what-you-mean">Say exactly what you mean</h2>
+<blockquote>
+<p>“Automatically notify everyone whenever anything changes.”</p>
+</blockquote>
+<p>A proposal: when a confirmed volunteer cancels, email the event
+organizer immediately.</p>
+<p><strong>Who needs to know what, and when?</strong></p>
+</section>
+<section><h2 id="when-needs-conflict">When needs conflict</h2>
+<table>
+<thead>
+<tr>
+<th>Volunteer</th>
+<th>Organizer</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>“My plans can change.”</td>
+<td>“I need dependable coverage.”</td>
+</tr>
+</tbody>
+</table>
+<p><strong>What should happen to a late cancellation?</strong></p>
+</section>
+<section><h2 id="what-can-help-before-the-event">What can help before the
+event?</h2>
+<p>The event is in <strong>ten days</strong>.</p>
+<p>The budget is <strong>zero</strong>.</p>
+<p><strong>Which useful part can be ready?</strong></p>
+</section>
+<section><h2 id="checking-the-result">Checking the result</h2>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Validation</th>
+<th>Verification</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Does this solve the actual problem?</td>
+<td>Does it behave as specified?</td>
+</tr>
+<tr>
+<td>Volunteers know whether they are confirmed</td>
+<td>Cancellation follows the agreed rule</td>
+</tr>
+</tbody>
+</table>
+<p><strong>A correctly built request form can still leave everyone
+uncertain.</strong></p>
+</section>
+<section><h2 id="try-the-cancellation-question">Try the cancellation
+question</h2>
+<blockquote>
+<p>“People should be able to cancel, but I can’t have everyone
+disappearing just before the event.”</p>
+</blockquote>
+<p>Propose a rule. Mark it as a proposal.</p>
+<p><strong>What example would reveal a disagreement?</strong></p>
+</section>
+<section><h2 id="make-the-next-commitment-clear">Make the next commitment
+clear</h2>
+<p>Agree on what the next useful piece should do.</p>
+<p>Record the questions that remain open.</p>
+<p><strong>Leave people a fair chance to finish work they can be proud
+of.</strong></p>
+</section></div></div>
+<script src="slide-assets/reveal.js"></script>
+<script>Reveal.initialize({width:1280,height:720,margin:0.05,center:true,hash:true,slideNumber:true,transition:'none'});</script>
+</body></html>

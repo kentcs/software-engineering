@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Software Engineering: Introduction</title>
+<link rel="stylesheet" href="slide-assets/reveal.css">
+<link rel="stylesheet" href="slide-assets/slides.css">
+</head><body><div class="reveal"><div class="slides"><section><h1 id="software-engineering">Software Engineering</h1>
+<p>Introduction</p>
+<p class="subtitle">
+Building software other people can use
+</p>
+<p class="slide-author">
+Gregory S. DeLozier, PhD
+</p>
+</section>
+<section><h2 id="todays-questions">Today’s questions</h2>
+<p>What is worth building?</p>
+<p>What would count as evidence that it works?</p>
+<p>How can a team do good work and enjoy doing it?</p>
+</section>
+<section><h2 id="engineering-our-working-definition">Engineering: our working
+definition</h2>
+<blockquote>
+Engineering is the application of known principles and the orderly
+gathering of new knowledge to predictably create a product within the
+bounds of resource constraints.
+</blockquote>
+</section>
+<section><h2 id="knowledge-problem-constraints">Knowledge, problem,
+constraints</h2>
+<table>
+<thead>
+<tr>
+<th>Engineering concern</th>
+<th>Question for the team</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Science or technology</td>
+<td>What do we know? What must we learn?</td>
+</tr>
+<tr>
+<td>A real problem</td>
+<td>Whose situation should improve?</td>
+</tr>
+<tr>
+<td>Constraints</td>
+<td>What must fit? What limits our choices?</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Software engineering includes operation and maintenance
+too.</strong></p>
+</section>
+<section><h2 id="one-camera-two-reservations">One camera, two reservations</h2>
+<p>Equipment checkout uses email and a spreadsheet.</p>
+<table>
+<thead>
+<tr>
+<th>Student</th>
+<th>Reservation</th>
+<th>Reply</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Maya</td>
+<td>Camera 4, Friday 2-4</td>
+<td>Confirmed</td>
+</tr>
+<tr>
+<td>Jordan</td>
+<td>Camera 4, Friday 3-5</td>
+<td>Confirmed</td>
+</tr>
+</tbody>
+</table>
+<p><strong>What would we need to know before building
+anything?</strong></p>
+</section>
+<section><h2 id="different-causes-different-work">Different causes, different
+work</h2>
+<table>
+<thead>
+<tr>
+<th>What we discover</th>
+<th>What might help</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Staff update separate copies</td>
+<td>A shared reservation record</td>
+</tr>
+<tr>
+<td>Equipment comes back late</td>
+<td>A return and availability process</td>
+</tr>
+<tr>
+<td>Students cannot tell if a request was accepted</td>
+<td>Clear confirmation</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Find evidence for the cause.</strong></p>
+</section>
+<section><h2 id="four-weeks-to-a-usable-product">Four weeks to a usable
+product</h2>
+<table>
+<thead>
+<tr>
+<th>Candidate work</th>
+<th>Decision to make</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Prevent overlapping confirmations</td>
+<td>Essential for the first release?</td>
+</tr>
+<tr>
+<td>Connect to campus sign-in</td>
+<td>What must we learn early?</td>
+</tr>
+<tr>
+<td>Customize calendar colors</td>
+<td>Can it wait?</td>
+</tr>
+</tbody>
+</table>
+<p><strong>What is the smallest useful release?</strong></p>
+</section>
+<section><h2 id="make-the-behavior-checkable">Make the behavior checkable</h2>
+<p class="label">
+Acceptance criterion
+</p>
+<blockquote>
+A confirmed reservation prevents another student from reserving the same
+item for an overlapping period.
+</blockquote>
+<p><strong>Where do we still need a decision?</strong></p>
+</section>
+<section><h2 id="check-the-claim">Check the claim</h2>
+<p class="label">
+Existing: Camera 4, Friday 2-4, confirmed
+</p>
+<table>
+<thead>
+<tr>
+<th>New request</th>
+<th>Expected result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Camera 4, Friday 3-5</td>
+<td>Reject the overlap</td>
+</tr>
+<tr>
+<td>Camera 5, Friday 3-5</td>
+<td>Allow, if otherwise available</td>
+</tr>
+<tr>
+<td>Camera 4, Friday 4-5</td>
+<td>Decide the turnaround rule</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Two simultaneous requests need a check too.</strong></p>
+</section>
+<section><h2 id="show-one-usable-release">Show one usable release</h2>
+<ol type="1">
+<li>Reserve Camera 4 and receive confirmation.</li>
+<li>Try an overlapping reservation.</li>
+<li>Reopen the application and check the record.</li>
+</ol>
+<p><strong>What can a user do with this version?</strong></p>
+</section>
+<section><h2 id="work-a-teammate-can-continue">Work a teammate can continue</h2>
+<table>
+<thead>
+<tr>
+<th>Team need</th>
+<th>Supporting practice</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Understand a change</td>
+<td>Version history and review</td>
+</tr>
+<tr>
+<td>Find unfinished work</td>
+<td>An issue with a clear next step</td>
+</tr>
+<tr>
+<td>Run the product</td>
+<td>Tested setup instructions</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Could a teammate pick this up tomorrow?</strong></p>
+</section>
+<section><h2 id="a-career-worth-enjoying">A career worth enjoying</h2>
+<p>Time to concentrate.</p>
+<p>Teammates you can rely on.</p>
+<p>Work you can finish and take pride in.</p>
+<p><strong>How does the team’s process help or get in the
+way?</strong></p>
+</section>
+<section><h2 id="same-team-same-tools">Same team, same tools</h2>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>When work becomes exhausting</th>
+<th>A change in how we work</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>New priorities; the same deadline</td>
+<td>Decide what to postpone</td>
+</tr>
+<tr>
+<td>Only one person can fix a release</td>
+<td>Share knowledge and practice recovery</td>
+</tr>
+<tr>
+<td>Decisions stay in private conversations</td>
+<td>Record decisions where the team works</td>
+</tr>
+</tbody>
+</table>
+<p><strong>A new framework will not fix these problems.</strong></p>
+</section>
+<section><h2 id="ready-for-someone-else-to-use">Ready for someone else to
+use?</h2>
+<p>Can another person use it without us beside them?</p>
+<p>Do we know which version is running?</p>
+<p>Can we recover from a failed deployment?</p>
+</section>
+<section><h2 id="choose-the-next-useful-experiment">Choose the next useful
+experiment</h2>
+<p class="label">
+Unknown
+</p>
+<p>Can our application use campus sign-in?</p>
+<p class="label">
+Small investigation
+</p>
+<p>Check access requirements. Try a minimal connection.</p>
+<p><strong>Which decision will the result change?</strong></p>
+</section>
+<section><h2 id="who-bears-the-cost-of-a-mistake">Who bears the cost of a
+mistake?</h2>
+<p>A student arrives for equipment that is unavailable.</p>
+<p>A public calendar reveals who borrowed it.</p>
+<p>A teammate releases a feature with an unreported failure.</p>
+<p><strong>What responsibility follows in each case?</strong></p>
+</section>
+<section><h2 id="the-product-will-change">The product will change</h2>
+<p>Suppose staff decide on a 30-minute turnaround for inspection and
+charging.</p>
+<p><strong>What would need to change?</strong></p>
+<p><strong>What evidence would make the change safe to
+release?</strong></p>
+</section>
+<section><h2 id="learning-through-the-project">Learning through the project</h2>
+<p>Make a decision.</p>
+<p>Build something that tests it.</p>
+<p>Use the result to improve the product and the way we work.</p>
+<p><strong>Bring evidence to each project checkpoint.</strong></p>
+</section>
+<section><h2 id="how-the-course-develops">How the course develops</h2>
+<table>
+<thead>
+<tr>
+<th>Course phase</th>
+<th>Main work</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Understand and plan</td>
+<td>Problems, requirements, user stories</td>
+</tr>
+<tr>
+<td>Build together</td>
+<td>Team workflow, version control, design, testing</td>
+</tr>
+<tr>
+<td>Deliver and launch</td>
+<td>Deployment, automation, product readiness</td>
+</tr>
+<tr>
+<td>Keep it useful</td>
+<td>Maintenance, architecture, quality</td>
+</tr>
+<tr>
+<td>Judge the consequences</td>
+<td>Economics, professional practice, ethics</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section><h2 id="start-with-a-problem-worth-solving">Start with a problem worth
+solving</h2>
+<p>Name one user and one recurring difficulty.</p>
+<p>Describe what improvement would look like.</p>
+<p>Choose the first thing to observe or ask.</p>
+<p><strong>Make the next step small enough to do.</strong></p>
+</section></div></div>
+<script src="slide-assets/reveal.js"></script>
+<script>Reveal.initialize({width:1280,height:720,margin:0.05,center:true,hash:true,slideNumber:true,transition:'none'});</script>
+</body></html>
