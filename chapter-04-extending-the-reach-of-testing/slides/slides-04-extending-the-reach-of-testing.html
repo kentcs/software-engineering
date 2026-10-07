@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Software Engineering: Extending the Reach of Testing</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="slide-assets/reveal.css">
+<link rel="stylesheet" href="slide-assets/slides.css">
+</head><body><div class="reveal"><div class="slides"><section><h1 id="extending-the-reach-of-testing">Extending the Reach of
+Testing</h1>
+<p>Software Engineering</p>
+<p class="subtitle">
+Retrieve data, decode pages, interact with a browser
+</p>
+<p class="slide-author">
+Gregory S. DeLozier, PhD
+</p>
+</section>
+<section><h2 id="three-different-jobs">Three different jobs</h2>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Job</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Requests</td>
+<td>Retrieve API data or static HTML</td>
+</tr>
+<tr>
+<td>Beautiful Soup</td>
+<td>Decode the retrieved HTML</td>
+</tr>
+<tr>
+<td>WebDriver / ChromeDriver</td>
+<td>Test interaction and dynamic pages</td>
+</tr>
+</tbody>
+</table>
+<p><strong>What does each observation let us claim?</strong></p>
+</section>
+<section><h2 id="setup-sidebar-macos">Setup sidebar: macOS</h2>
+<p>In the chapter’s <code>code</code> folder:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python3</span> <span class="at">-m</span> venv .venv</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> .venv/bin/activate</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> pip install <span class="at">-r</span> requirements.txt</span></code></pre></div>
+<div class="setup-note">
+Install Python 3 and Chrome. Selenium Manager obtains ChromeDriver when
+needed.
+</div>
+</section>
+<section><h2 id="setup-sidebar-windows">Setup sidebar: Windows</h2>
+<p>In Command Prompt, in <code>code</code>:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bat"><code class="sourceCode dosbat"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>py <span class="at">-m</span> venv .venv</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>.venv\Scripts\activate.bat</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>python <span class="at">-m</span> pip install <span class="at">-r</span> requirements.txt</span></code></pre></div>
+<div class="setup-note">
+PowerShell: <code>.\.venv\Scripts\Activate.ps1</code>
+</div>
+</section>
+<section><h2 id="setup-sidebar-linux">Setup sidebar: Linux</h2>
+<p>Use the macOS environment commands.</p>
+<p>Install Chrome or Chromium and its system dependencies.</p>
+<table>
+<thead>
+<tr>
+<th>Environment</th>
+<th>Browser mode</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Graphical desktop</td>
+<td>Visible browser</td>
+</tr>
+<tr>
+<td>No graphical desktop</td>
+<td>Headless browser</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Headless browsers still run JavaScript.</strong></p>
+</section>
+<section><h2 id="running-the-examples">Running the examples</h2>
+<p>Use a terminal in the chapter’s <code>code</code> folder, with the
+environment activated.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> pytest <span class="at">-v</span> <span class="at">-s</span></span></code></pre></div>
+<p><code>-v</code>: named pass/fail results. <code>-s</code>: show
+printed output.</p>
+<p><strong>Each example uses a test_ function and
+assertions.</strong></p>
+</section>
+<section><h2 id="live-get-github-api-data">Live: get GitHub API data</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>url <span class="op">=</span> <span class="st">&quot;https://api.github.com/repos/python/cpython&quot;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>response <span class="op">=</span> requests.get(url, timeout<span class="op">=</span><span class="dv">15</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(response.status_code)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>repo <span class="op">=</span> response.json()</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(repo[<span class="st">&quot;full_name&quot;</span>])</span></code></pre></div>
+<p><strong>What else did GitHub return?</strong></p>
+<div class="setup-note">
+Run: <code>python -m pytest -v -s test_api.py</code><br>Prints
+python/cpython and its description.
+</div>
+</section>
+<section><h2 id="live-choose-useful-checks">Live: choose useful checks</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> response.status_code <span class="op">==</span> <span class="dv">200</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> repo[<span class="st">&quot;full_name&quot;</span>] <span class="op">==</span> <span class="st">&quot;python/cpython&quot;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> repo[<span class="st">&quot;private&quot;</span>] <span class="kw">is</span> <span class="va">False</span></span></code></pre></div>
+<p>Inspect the description, default branch, and star count.</p>
+<p><strong>Which values should stay fixed?</strong></p>
+<div class="setup-note">
+Run: <code>python -m pytest -v -s test_api.py</code><br>Shows the test
+result and repository details.
+</div>
+</section>
+<section><h2 id="live-retrieve-wikipedia-html">Live: retrieve Wikipedia HTML</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>url <span class="op">=</span> <span class="st">&quot;https://en.wikipedia.org/wiki/Selenium_(software)&quot;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>response <span class="op">=</span> requests.get(url, timeout<span class="op">=</span><span class="dv">15</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> response.status_code <span class="op">==</span> <span class="dv">200</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>html <span class="op">=</span> response.text</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(html[:<span class="dv">500</span>])</span></code></pre></div>
+<p><strong>Same library. This time the response is HTML.</strong></p>
+<div class="setup-note">
+Run: <code>python -m pytest -v -s
+test_wikipedia_response.py</code><br>Prints status 200 and the first 500
+HTML characters.
+</div>
+</section>
+<section><h2 id="live-decode-the-html">Live: decode the HTML</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>soup <span class="op">=</span> BeautifulSoup(html, <span class="st">&quot;html.parser&quot;</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>heading <span class="op">=</span> soup.find(<span class="bu">id</span><span class="op">=</span><span class="st">&quot;Selenium_WebDriver&quot;</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> heading <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>paragraph <span class="op">=</span> heading.find_next(<span class="st">&quot;p&quot;</span>)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> paragraph <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(paragraph.get_text(<span class="st">&quot; &quot;</span>, strip<span class="op">=</span><span class="va">True</span>))</span></code></pre></div>
+<p><strong>Requests retrieved it. Beautiful Soup decoded
+it.</strong></p>
+<div class="setup-note">
+Run: <code>python -m pytest -v -s test_static_html.py</code><br>Prints
+the WebDriver paragraph and its first link.
+</div>
+</section>
+<section><h2 id="live-examine-a-link">Live: examine a link</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>link <span class="op">=</span> paragraph.find(<span class="st">&quot;a&quot;</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> link <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(link.get_text(<span class="st">&quot; &quot;</span>, strip<span class="op">=</span><span class="va">True</span>))</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(link.get(<span class="st">&quot;href&quot;</span>))</span></code></pre></div>
+<p><strong>Does this establish that the destination works?</strong></p>
+<div class="setup-note">
+Run: <code>python -m pytest -v -s test_static_html.py</code><br>Prints
+the first link text and destination.
+</div>
+</section>
+<section><h2 id="now-interact-with-the-page">Now interact with the page</h2>
+<p>Wikipedia search:</p>
+<p><strong>Type Selenium -&gt; suggestions appear -&gt; choose the
+software article</strong></p>
+<p>Selenium -&gt; ChromeDriver -&gt; Chrome</p>
+<p><strong>Which part requires the running browser?</strong></p>
+</section>
+<section><h2 id="live-type-into-wikipedia">Live: type into Wikipedia</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>browser.get(<span class="st">&quot;https://en.wikipedia.org/wiki/Main_Page&quot;</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>search <span class="op">=</span> wait.until(EC.element_to_be_clickable(</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    (By.NAME, <span class="st">&quot;search&quot;</span>)))</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>search.send_keys(<span class="st">&quot;Selenium&quot;</span>)</span></code></pre></div>
+<p><strong>What appears after typing?</strong></p>
+<div class="setup-note">
+Run: <code>python -m pytest -v -s
+test_wikipedia_webdriver.py</code><br>Full demo: opens Chrome, searches,
+prints text, closes.
+</div>
+</section>
+<section><h2 id="live-select-the-suggestion">Live: select the suggestion</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>suggestion <span class="op">=</span> wait.until(software_suggestion)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>suggestion.click()</span></code></pre></div>
+<p>The helper finds the visible <strong>Selenium (software)</strong>
+suggestion.</p>
+<p><strong>How long should the test wait for it?</strong></p>
+<div class="setup-note">
+Run: <code>python -m pytest -v -s
+test_wikipedia_webdriver.py</code><br>The full demo selects Selenium
+(software).
+</div>
+</section>
+<section><h2 id="live-read-the-result">Live: read the result</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>heading <span class="op">=</span> browser.find_element(By.ID, <span class="st">&quot;Selenium_WebDriver&quot;</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>paragraph <span class="op">=</span> heading.find_element(By.XPATH, <span class="st">&quot;following::p[1]&quot;</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>text <span class="op">=</span> paragraph.text</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(text)</span></code></pre></div>
+<p><strong>Did we reach the expected article and section?</strong></p>
+<div class="setup-note">
+Run: <code>python -m pytest -v -s
+test_wikipedia_webdriver.py</code><br>Prints the WebDriver paragraph in
+the terminal.
+</div>
+</section>
+<section><h2 id="what-did-we-establish">What did we establish?</h2>
+<table>
+<thead>
+<tr>
+<th>Observation</th>
+<th>Evidence about</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GitHub repository fields</td>
+<td>API response data</td>
+</tr>
+<tr>
+<td>Wikipedia paragraph in HTML</td>
+<td>Delivered page content</td>
+</tr>
+<tr>
+<td>Search suggestion appears</td>
+<td>Dynamic browser behavior</td>
+</tr>
+<tr>
+<td>Selecting it opens the article</td>
+<td>Interactive navigation</td>
+</tr>
+</tbody>
+</table>
+<p><strong>A passing check supports a particular claim.</strong></p>
+</section>
+<section><h2 id="a-final-note-about-waiting">A final note about waiting</h2>
+<p><strong>ChromeDriver:</strong> capable, implements the WebDriver
+standard.</p>
+<p>Dynamic pages make timing awkward: what condition, and how long?</p>
+<p><strong>Playwright:</strong> automatic action waits and retrying
+assertions reduce that work.</p>
+<p>Microsoft, “Auto-waiting”:
+https://playwright.dev/python/docs/actionability</p>
+</section></div></div>
+<script src="slide-assets/reveal.js"></script>
+<script>Reveal.initialize({width:1280,height:720,margin:0.05,center:true,hash:true,slideNumber:true,transition:'none'});</script>
+</body></html>

@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Code: Test-Driven Development</title>
+<style>
+* { box-sizing: border-box; }
+body { margin: 0; color: #172b36; background: #f5f7f9; font: 16px/1.5 system-ui, sans-serif; }
+main { max-width: 1600px; margin: auto; padding: 24px; }
+a { color: #12647a; }
+h1 { font-size: 26px; margin: 8px 0 20px; }
+.browser { display: grid; grid-template-columns: 270px minmax(0, 1fr); height: calc(100vh - 140px); min-height: 400px; border: 1px solid #ccd6dc; border-radius: 8px; overflow: hidden; background: white; }
+nav { overflow: auto; background: #edf2f5; border-right: 1px solid #ccd6dc; padding: 12px; }
+nav ul { list-style: none; padding: 0; margin: 0; }
+nav a { display: block; padding: 9px 10px; text-decoration: none; border-radius: 4px; overflow-wrap: anywhere; font: 14px/1.5 ui-monospace, monospace; }
+nav a:hover { background: #dfe9ed; }
+nav a[aria-current="true"] { background: #155e75; color: white; }
+a:focus-visible { outline: 3px solid #d18a00; outline-offset: -3px; }
+.viewer { min-width: 0; min-height: 0; }
+.source-file { height: 100%; display: flex; flex-direction: column; }
+.source-file[hidden] { display: none; }
+.file-header { padding: 12px 18px; border-bottom: 1px solid #ccd6dc; }
+h2 { font: 600 16px/1.5 ui-monospace, monospace; margin: 0; overflow-wrap: anywhere; }
+pre { flex: 1; min-height: 0; overflow: auto; margin: 0; padding: 20px; background: #fafbfc; tab-size: 4; }
+code { font: 14px/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+.binary { padding: 20px; }
+@media(max-width: 700px) { main { padding: 12px; } h1 { font-size: 21px; } .browser { grid-template-columns: 1fr; grid-template-rows: 160px minmax(0, 1fr); height: calc(100dvh - 130px); min-height: 480px; } nav { border-right: 0; border-bottom: 1px solid #ccd6dc; } }
+</style>
+</head>
+<body>
+<main>
+<a href="../index.html">Back to chapter</a>
+<h1>Test-Driven Development: Code</h1>
+<div class="browser">
+<nav aria-label="Files"><ul><li><a href="#file-30305f7265642e7079">00_red.py</a></li>
+<li><a href="#file-30315f66697273745f706173732e7079">01_first_pass.py</a></li>
+<li><a href="#file-30325f73696e676c655f6469676974732e7079">02_single_digits.py</a></li>
+<li><a href="#file-30335f77686f6c655f6e756d626572732e7079">03_whole_numbers.py</a></li>
+<li><a href="#file-30345f646563696d616c732e7079">04_decimals.py</a></li>
+<li><a href="#file-30355f7369676e732e7079">05_signs.py</a></li>
+<li><a href="#file-30365f696e76616c69645f696e7075742e7079">06_invalid_input.py</a></li>
+<li><a href="#file-6d617468732e7079">maths.py</a></li>
+<li><a href="#file-746573742e7079">test.py</a></li>
+<li><a href="#file-746573745f6d617468732e7079">test_maths.py</a></li></ul></nav>
+<div class="viewer"><section class="source-file" id="file-30305f7265642e7079" aria-labelledby="title-file-30305f7265642e7079"><header class="file-header"><h2 id="title-file-30305f7265642e7079">00_red.py</h2></header><pre><code>"""Intentional first failing test."""
+def parse(text):
+    return 0.0
+
+
+def check(text, expected):
+    actual = parse(text)
+    if actual != expected:
+        raise AssertionError(
+            f"{text!r}: expected {expected!r}, got {actual!r}")
+
+
+def test_single_digits():
+    check('7', 7.0)
+
+def main():
+    test_single_digits()
+    print("All tests passed.")
+
+if __name__ == "__main__":
+    main()
+</code></pre></section>
+<section class="source-file" id="file-30315f66697273745f706173732e7079" aria-labelledby="title-file-30315f66697273745f706173732e7079" hidden><header class="file-header"><h2 id="title-file-30315f66697273745f706173732e7079">01_first_pass.py</h2></header><pre><code>"""Cumulative example; run with python3 01_first_pass.py."""
+def parse(text):
+    return 7.0
+
+
+def check(text, expected):
+    actual = parse(text)
+    if actual != expected:
+        raise AssertionError(
+            f"{text!r}: expected {expected!r}, got {actual!r}")
+
+
+def test_single_digits():
+    check('7', 7.0)
+
+def main():
+    test_single_digits()
+    print("All tests passed.")
+
+if __name__ == "__main__":
+    main()
+</code></pre></section>
+<section class="source-file" id="file-30325f73696e676c655f6469676974732e7079" aria-labelledby="title-file-30325f73696e676c655f6469676974732e7079" hidden><header class="file-header"><h2 id="title-file-30325f73696e676c655f6469676974732e7079">02_single_digits.py</h2></header><pre><code>"""Cumulative example; run with python3 02_single_digits.py."""
+def parse(text):
+    return float(ord(text[0]) - ord("0"))
+
+
+def check(text, expected):
+    actual = parse(text)
+    if actual != expected:
+        raise AssertionError(
+            f"{text!r}: expected {expected!r}, got {actual!r}")
+
+
+def test_single_digits():
+    check('7', 7.0)
+    check('0', 0.0)
+    check('3', 3.0)
+    check('9', 9.0)
+
+def main():
+    test_single_digits()
+    print("All tests passed.")
+
+if __name__ == "__main__":
+    main()
+</code></pre></section>
+<section class="source-file" id="file-30335f77686f6c655f6e756d626572732e7079" aria-labelledby="title-file-30335f77686f6c655f6e756d626572732e7079" hidden><header class="file-header"><h2 id="title-file-30335f77686f6c655f6e756d626572732e7079">03_whole_numbers.py</h2></header><pre><code>"""Cumulative example; run with python3 03_whole_numbers.py."""
+def parse(text):
+    value = 0.0
+    for digit in text:
+        value = value * 10 + ord(digit) - ord("0")
+    return value
+
+
+def check(text, expected):
+    actual = parse(text)
+    if actual != expected:
+        raise AssertionError(
+            f"{text!r}: expected {expected!r}, got {actual!r}")
+
+
+def test_single_digits():
+    check('7', 7.0)
+    check('0', 0.0)
+    check('3', 3.0)
+    check('9', 9.0)
+
+def test_multiple_digits():
+    check('42', 42.0)
+    check('10', 10.0)
+    check('105', 105.0)
+    check('007', 7.0)
+
+def main():
+    test_single_digits()
+    test_multiple_digits()
+    print("All tests passed.")
+
+if __name__ == "__main__":
+    main()
+</code></pre></section>
+<section class="source-file" id="file-30345f646563696d616c732e7079" aria-labelledby="title-file-30345f646563696d616c732e7079" hidden><header class="file-header"><h2 id="title-file-30345f646563696d616c732e7079">04_decimals.py</h2></header><pre><code>"""Cumulative example; run with python3 04_decimals.py."""
+import math
+
+
+def parse(text):
+    value = 0.0
+    place = 0.1
+    after_point = False
+    for digit in text:
+        if digit == ".":
+            after_point = True
+        elif after_point:
+            value += (ord(digit) - ord("0")) * place
+            place /= 10
+        else:
+            value = value * 10 + ord(digit) - ord("0")
+    return value
+
+
+def check(text, expected):
+    actual = parse(text)
+    if not math.isclose(actual, expected, rel_tol=1e-12, abs_tol=1e-12):
+        raise AssertionError(
+            f"{text!r}: expected {expected!r}, got {actual!r}")
+
+
+def check_rejected(text):
+    try:
+        parse(text)
+    except ValueError:
+        return
+    raise AssertionError(f"{text!r}: expected ValueError")
+
+
+def test_single_digits():
+    check('7', 7.0)
+    check('0', 0.0)
+    check('3', 3.0)
+    check('9', 9.0)
+
+def test_multiple_digits():
+    check('42', 42.0)
+    check('10', 10.0)
+    check('105', 105.0)
+    check('007', 7.0)
+
+def test_decimal_numbers():
+    check('12.5', 12.5)
+    check('0.25', 0.25)
+    check('12.34', 12.34)
+    check('10.02', 10.02)
+
+def main():
+    test_single_digits()
+    test_multiple_digits()
+    test_decimal_numbers()
+    print("All tests passed.")
+
+if __name__ == "__main__":
+    main()
+</code></pre></section>
+<section class="source-file" id="file-30355f7369676e732e7079" aria-labelledby="title-file-30355f7369676e732e7079" hidden><header class="file-header"><h2 id="title-file-30355f7369676e732e7079">05_signs.py</h2></header><pre><code>"""Cumulative example; run with python3 05_signs.py."""
+import math
+
+
+def parse(text):
+    sign = 1.0
+    if text.startswith(("-", "+")):
+        if text[0] == "-":
+            sign = -1.0
+        text = text[1:]
+    value = 0.0
+    place = 0.1
+    after_point = False
+    for digit in text:
+        if digit == ".":
+            after_point = True
+        elif after_point:
+            value += (ord(digit) - ord("0")) * place
+            place /= 10
+        else:
+            value = value * 10 + ord(digit) - ord("0")
+    return sign * value
+
+
+def check(text, expected):
+    actual = parse(text)
+    if not math.isclose(actual, expected, rel_tol=1e-12, abs_tol=1e-12):
+        raise AssertionError(
+            f"{text!r}: expected {expected!r}, got {actual!r}")
+
+
+def check_rejected(text):
+    try:
+        parse(text)
+    except ValueError:
+        return
+    raise AssertionError(f"{text!r}: expected ValueError")
+
+
+def test_single_digits():
+    check('7', 7.0)
+    check('0', 0.0)
+    check('3', 3.0)
+    check('9', 9.0)
+
+def test_multiple_digits():
+    check('42', 42.0)
+    check('10', 10.0)
+    check('105', 105.0)
+    check('007', 7.0)
+
+def test_decimal_numbers():
+    check('12.5', 12.5)
+    check('0.25', 0.25)
+    check('12.34', 12.34)
+    check('10.02', 10.02)
+    check('0.0', 0.0)
+
+def test_signed_numbers():
+    check('-12.5', -12.5)
+    check('+7', 7.0)
+    check('-0.25', -0.25)
+
+def main():
+    test_single_digits()
+    test_multiple_digits()
+    test_decimal_numbers()
+    test_signed_numbers()
+    print("All tests passed.")
+
+if __name__ == "__main__":
+    main()
+</code></pre></section>
+<section class="source-file" id="file-30365f696e76616c69645f696e7075742e7079" aria-labelledby="title-file-30365f696e76616c69645f696e7075742e7079" hidden><header class="file-header"><h2 id="title-file-30365f696e76616c69645f696e7075742e7079">06_invalid_input.py</h2></header><pre><code>"""Cumulative example; run with python3 06_invalid_input.py."""
+import math
+
+
+def parse(text):
+    sign = 1.0
+    if text.startswith(("-", "+")):
+        if text[0] == "-":
+            sign = -1.0
+        text = text[1:]
+    parts = text.split(".")
+    if (len(parts) &gt; 2 or
+            not any(parts) or
+            any(c &lt; "0" or c &gt; "9" for part in parts for c in part)):
+        raise ValueError("Expected digits with an optional decimal point")
+    value = 0.0
+    place = 0.1
+    after_point = False
+    for digit in text:
+        if digit == ".":
+            after_point = True
+        elif after_point:
+            value += (ord(digit) - ord("0")) * place
+            place /= 10
+        else:
+            value = value * 10 + ord(digit) - ord("0")
+    return sign * value
+
+
+def check(text, expected):
+    actual = parse(text)
+    if not math.isclose(actual, expected, rel_tol=1e-12, abs_tol=1e-12):
+        raise AssertionError(
+            f"{text!r}: expected {expected!r}, got {actual!r}")
+
+
+def check_rejected(text):
+    try:
+        parse(text)
+    except ValueError:
+        return
+    raise AssertionError(f"{text!r}: expected ValueError")
+
+
+def test_single_digits():
+    check('7', 7.0)
+    check('0', 0.0)
+    check('3', 3.0)
+    check('9', 9.0)
+
+def test_multiple_digits():
+    check('42', 42.0)
+    check('10', 10.0)
+    check('105', 105.0)
+    check('007', 7.0)
+
+def test_decimal_numbers():
+    check('12.5', 12.5)
+    check('0.25', 0.25)
+    check('12.34', 12.34)
+    check('10.02', 10.02)
+    check('0.0', 0.0)
+    check('.5', 0.5)
+    check('5.', 5.0)
+
+def test_signed_numbers():
+    check('-12.5', -12.5)
+    check('+7', 7.0)
+    check('-0.25', -0.25)
+
+def test_invalid_input():
+    check_rejected('')
+    check_rejected('abc')
+    check_rejected('12x')
+    check_rejected('1.2.3')
+    check_rejected('+')
+    check_rejected('-')
+    check_rejected('.')
+    check_rejected(' 7')
+    check_rejected('7 ')
+    check_rejected('1e3')
+    check_rejected('--7')
+    check_rejected('\u0667')
+
+def main():
+    test_single_digits()
+    test_multiple_digits()
+    test_decimal_numbers()
+    test_signed_numbers()
+    test_invalid_input()
+    print("All tests passed.")
+
+if __name__ == "__main__":
+    main()
+</code></pre></section>
+<section class="source-file" id="file-6d617468732e7079" aria-labelledby="title-file-6d617468732e7079" hidden><header class="file-header"><h2 id="title-file-6d617468732e7079">maths.py</h2></header><pre><code>def add1(x, y):
+    return 4.0
+
+
+def add2(x, y):
+    if x == 2:
+        return 4
+    if x == 3:
+        return 6
+
+
+def add3(x, y):
+    return x * 2
+
+
+def add4(x, y):
+    return abs(x) + abs(y)
+
+
+def add5(x, y):
+    if x == 123.456:
+        return 8675309
+    return x + y
+</code></pre></section>
+<section class="source-file" id="file-746573742e7079" aria-labelledby="title-file-746573742e7079" hidden><header class="file-header"><h2 id="title-file-746573742e7079">test.py</h2></header><pre><code>from maths import *
+
+def test_add():
+   assert add5(2,2) == 4
+   assert add5(3,3) == 6
+   assert add5(4,4) == 8
+   assert add5(3,4) == 7
+   for i in range(0,1000):
+      for j in range(0,1000):
+         assert(i+j == add5(i,j))
+   assert 7.299999999 &lt; add5(3.1,4.2) &lt; 7.30000000000001
+   assert add5(-3, -4) == -7
+   assert add5(123.456, 123.456) == 123.456 + 123.456
+
+
+if __name__ == "__main__":
+   test_add()
+
+
+</code></pre></section>
+<section class="source-file" id="file-746573745f6d617468732e7079" aria-labelledby="title-file-746573745f6d617468732e7079" hidden><header class="file-header"><h2 id="title-file-746573745f6d617468732e7079">test_maths.py</h2></header><pre><code>"""Testing-agency exercise. Change the imported version as the suite grows.
+
+Run without Python's -O option so assertions execute.
+The supplied versions are intentionally incorrect.
+"""
+from maths import add1 as add
+
+
+def test_two_plus_two():
+    assert add(2, 2) == 4
+
+
+def test_another_equal_pair():
+    assert add(3, 3) == 6
+
+
+def test_larger_equal_pair():
+    assert add(4, 4) == 8
+
+
+def test_unequal_positive_values():
+    assert add(2, 3) == 5
+    assert add(3, 2) == 5
+
+
+def test_negative_values():
+    assert add(-2, -3) == -5
+    assert add(-2, 3) == 1
+    assert add(2, -3) == -1
+
+
+def test_zero_and_fractions():
+    assert add(0, 0) == 0
+    assert add(0, 7) == 7
+    assert add(7, 0) == 7
+    assert add(0.25, 0.5) == 0.75
+    assert add(-0.25, 0.5) == 0.25
+
+
+def main():
+    test_two_plus_two()
+    test_another_equal_pair()
+    test_larger_equal_pair()
+    test_unequal_positive_values()
+    test_negative_values()
+    test_zero_and_fractions()
+    print("All agency tests passed.")
+
+
+if __name__ == "__main__":
+    main()
+</code></pre></section></div>
+</div>
+<p>The files are available in the <a href="https://github.com/kentcs/software-engineering/tree/main/chapter-03-test-driven-development/code">course repository</a>.</p>
+</main>
+<script>
+const links = [...document.querySelectorAll('nav a')];
+const panels = [...document.querySelectorAll('.source-file')];
+function showFile() {
+ const selected = links.find(link => link.hash === location.hash) || links[0];
+ if (!selected) return;
+ for (const link of links) link === selected ? link.setAttribute('aria-current', 'true') : link.removeAttribute('aria-current');
+ for (const panel of panels) panel.hidden = '#' + panel.id !== selected.hash;
+}
+window.addEventListener('hashchange', showFile);
+showFile();
+</script>
+</body>
+</html>

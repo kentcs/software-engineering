@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Software Engineering: Test-Driven Development</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="slide-assets/reveal.css">
+<link rel="stylesheet" href="slide-assets/slides.css">
+</head><body><div class="reveal"><div class="slides"><section><h1 id="test-driven-development">Test-Driven Development</h1>
+<p>Software Engineering</p>
+<p class="subtitle">
+A concrete specification, one test at a time
+</p>
+<p class="slide-author">
+Gregory S. DeLozier, PhD
+</p>
+</section>
+<section><h2 id="we-are-the-testing-agency">We are the testing agency</h2>
+<p>The supplier promises that <code>add(x, y)</code> returns the
+sum.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> maths <span class="im">import</span> add1 <span class="im">as</span> add</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> add(<span class="dv">2</span>, <span class="dv">2</span>) <span class="op">==</span> <span class="dv">4</span></span></code></pre></div>
+<p>It passes.</p>
+<p><strong>What should we test next?</strong></p>
+</section>
+<section><h2 id="another-equal-pair">Another equal pair</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> test_another_equal_pair():</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span> add(<span class="dv">3</span>, <span class="dv">3</span>) <span class="op">==</span> <span class="dv">6</span></span></code></pre></div>
+<p><strong>Does the replacement still pass the first test?</strong></p>
+</section>
+<section><h2 id="a-broader-range">A broader range</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> test_larger_equal_pair():</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span> add(<span class="dv">4</span>, <span class="dv">4</span>) <span class="op">==</span> <span class="dv">8</span></span></code></pre></div>
+<p><strong>How much variety do our tests really contain?</strong></p>
+</section>
+<section><h2 id="unequal-operands">Unequal operands</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> test_unequal_positive_values():</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span> add(<span class="dv">2</span>, <span class="dv">3</span>) <span class="op">==</span> <span class="dv">5</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span> add(<span class="dv">3</span>, <span class="dv">2</span>) <span class="op">==</span> <span class="dv">5</span></span></code></pre></div>
+<p><strong>What have we tested that equal pairs never
+checked?</strong></p>
+</section>
+<section><h2 id="signs-zero-and-fractions">Signs, zero, and fractions</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> add(<span class="op">-</span><span class="dv">2</span>, <span class="op">-</span><span class="dv">3</span>) <span class="op">==</span> <span class="op">-</span><span class="dv">5</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> add(<span class="op">-</span><span class="dv">2</span>, <span class="dv">3</span>) <span class="op">==</span> <span class="dv">1</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> add(<span class="dv">0</span>, <span class="dv">7</span>) <span class="op">==</span> <span class="dv">7</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> add(<span class="fl">0.25</span>, <span class="fl">0.5</span>) <span class="op">==</span> <span class="fl">0.75</span></span></code></pre></div>
+<p><strong>Does this look like useful evidence?</strong></p>
+</section>
+<section><h2 id="how-confident-are-we">How confident are we?</h2>
+<p>The latest version passes every test so far.</p>
+<p>What inputs remain worth trying?</p>
+<p>Would more tests of the same kind help?</p>
+<p><strong>Would you trust it? For what use?</strong></p>
+</section>
+<section><h2 id="reveal-the-first-four-versions">Reveal: the first four
+versions</h2>
+<table>
+<thead>
+<tr>
+<th>Version</th>
+<th>Implementation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>add1</code></td>
+<td>Always return 4.0</td>
+</tr>
+<tr>
+<td><code>add2</code></td>
+<td>Return 4 for x = 2; 6 for x = 3</td>
+</tr>
+<tr>
+<td><code>add3</code></td>
+<td>Return x * 2</td>
+</tr>
+<tr>
+<td><code>add4</code></td>
+<td>Return abs(x) + abs(y)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Each new kind of input exposed a different
+limitation.</strong></p>
+</section>
+<section><h2 id="reveal-the-last-version">Reveal: the last version</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> add5(x, y):</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> x <span class="op">==</span> <span class="fl">123.456</span>:</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="dv">8675309</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> x <span class="op">+</span> y</span></code></pre></div>
+<p><strong>What would lead a black-box tester to that
+input?</strong></p>
+</section>
+<section><h2 id="two-kinds-of-evidence">Two kinds of evidence</h2>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Evidence here</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Test execution</td>
+<td>Results for selected inputs</td>
+</tr>
+<tr>
+<td>Code inspection</td>
+<td>An unjustified exceptional branch</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Strictly exhaustive testing would catch it. Practical suites
+may not.</strong></p>
+</section>
+<section><h2 id="passing-tests-still-matter">Passing tests still matter</h2>
+<p>The last defect is deliberately contrived.</p>
+<p>The earlier tests still caught plausible mistakes.</p>
+<p><strong>Use tests and inspection to build justified
+confidence.</strong></p>
+</section>
+<section><h2 id="what-does-convert-a-number-mean">What does “convert a number”
+mean?</h2>
+<table>
+<thead>
+<tr>
+<th>Input</th>
+<th>Decision needed</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>"7"</code></td>
+<td>Which numeric result?</td>
+</tr>
+<tr>
+<td><code>"007"</code></td>
+<td>Are leading zeros allowed?</td>
+</tr>
+<tr>
+<td><code>".5"</code></td>
+<td>Are digits required before the point?</td>
+</tr>
+<tr>
+<td><code>"1.2.3"</code></td>
+<td>What counts as an error?</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Choose one behavior to specify.</strong></p>
+</section>
+<section><h2 id="the-development-cycle">The development cycle</h2>
+<table>
+<thead>
+<tr>
+<th>Stage</th>
+<th>Work</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Red</td>
+<td>Specify one behavior; see the test fail</td>
+</tr>
+<tr>
+<td>Green</td>
+<td>Implement it; rerun every test</td>
+</tr>
+<tr>
+<td>Refactor</td>
+<td>Improve the code; keep tests passing</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Specification first, within each small
+iteration.</strong></p>
+</section>
+<section><h2 id="first-specification-one-digit">First specification: one
+digit</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> parse(text):</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="fl">0.0</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> main():</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span> parse(<span class="st">&quot;7&quot;</span>) <span class="op">==</span> <span class="fl">7.0</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="va">__name__</span> <span class="op">==</span> <span class="st">&quot;__main__&quot;</span>:</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    main()</span></code></pre></div>
+<p><strong>What should fail, and why?</strong></p>
+</section>
+<section><h2 id="a-first-passing-result">A first passing result</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> parse(text):</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="fl">7.0</span></span></code></pre></div>
+<p>The first test passes.</p>
+<p><strong>What have we established? What remains unknown?</strong></p>
+</section>
+<section><h2 id="next-specification-another-digit">Next specification: another
+digit</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> parse(<span class="st">&quot;7&quot;</span>) <span class="op">==</span> <span class="fl">7.0</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> parse(<span class="st">&quot;3&quot;</span>) <span class="op">==</span> <span class="fl">3.0</span></span></code></pre></div>
+<p>Expected <code>3.0</code>; actual <code>7.0</code>.</p>
+<p><strong>The next example requires a more general rule.</strong></p>
+</section>
+<section><h2 id="single-digit-implementation">Single-digit implementation</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> parse(text):</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="bu">float</span>(<span class="bu">ord</span>(text[<span class="dv">0</span>]) <span class="op">-</span> <span class="bu">ord</span>(<span class="st">&quot;0&quot;</span>))</span></code></pre></div>
+<p><code>"0"</code>: 48 - 48 = 0</p>
+<p><code>"9"</code>: 57 - 48 = 9</p>
+<p><strong>Rerun the earlier examples.</strong></p>
+</section>
+<section><h2 id="test-procedures-called-from-main">Test procedures called from
+main</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> test_single_digits():</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    check(<span class="st">&quot;0&quot;</span>, <span class="fl">0.0</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    check(<span class="st">&quot;3&quot;</span>, <span class="fl">3.0</span>)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    check(<span class="st">&quot;7&quot;</span>, <span class="fl">7.0</span>)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    check(<span class="st">&quot;9&quot;</span>, <span class="fl">9.0</span>)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> main():</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    test_single_digits()</span></code></pre></div>
+<p><strong>A named test still needs a call.</strong></p>
+</section>
+<section><h2 id="next-specification-several-digits">Next specification: several
+digits</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> test_multiple_digits():</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    check(<span class="st">&quot;42&quot;</span>, <span class="fl">42.0</span>)</span></code></pre></div>
+<p>Current result: <code>4.0</code>.</p>
+<p><strong>What must happen when the second digit arrives?</strong></p>
+</section>
+<section><h2 id="building-the-value">Building the value</h2>
+<table>
+<thead>
+<tr>
+<th>Digit in <code>"105"</code></th>
+<th>Calculation</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>0 * 10 + 1</td>
+<td>1</td>
+</tr>
+<tr>
+<td>0</td>
+<td>1 * 10 + 0</td>
+<td>10</td>
+</tr>
+<tr>
+<td>5</td>
+<td>10 * 10 + 5</td>
+<td>105</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>value <span class="op">=</span> value <span class="op">*</span> <span class="dv">10</span> <span class="op">+</span> <span class="bu">ord</span>(digit) <span class="op">-</span> <span class="bu">ord</span>(<span class="st">&quot;0&quot;</span>)</span></code></pre></div>
+<p><strong>Do the single-digit tests still pass?</strong></p>
+</section>
+<section><h2 id="next-specification-a-decimal">Next specification: a decimal</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> test_decimal_numbers():</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    check(<span class="st">&quot;12.5&quot;</span>, <span class="fl">12.5</span>)</span></code></pre></div>
+<p>The whole-number loop treats <code>"."</code> as a digit.</p>
+<p><strong>What changes after the point?</strong></p>
+</section>
+<section><h2 id="fractional-places">Fractional places</h2>
+<table>
+<thead>
+<tr>
+<th>Part of <code>"10.02"</code></th>
+<th>Contribution</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>10</code></td>
+<td>Whole-number value: 10</td>
+</tr>
+<tr>
+<td><code>.</code></td>
+<td>Begin fractional places</td>
+</tr>
+<tr>
+<td><code>0</code></td>
+<td>0 * 0.1</td>
+</tr>
+<tr>
+<td><code>2</code></td>
+<td>2 * 0.01</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>value <span class="op">+=</span> (<span class="bu">ord</span>(digit) <span class="op">-</span> <span class="bu">ord</span>(<span class="st">&quot;0&quot;</span>)) <span class="op">*</span> place</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>place <span class="op">/=</span> <span class="dv">10</span></span></code></pre></div>
+<p><strong>Zero still occupies a decimal place.</strong></p>
+</section>
+<section><h2 id="what-counts-as-the-expected-value">What counts as the expected
+value?</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>math.isclose(actual, expected,</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>             rel_tol<span class="op">=</span><span class="fl">1e-12</span>, abs_tol<span class="op">=</span><span class="fl">1e-12</span>)</span></code></pre></div>
+<p>Small rounding differences may be acceptable.</p>
+<p>A misplaced decimal point is not.</p>
+<p><strong>Choose the tolerance to fit the requirement.</strong></p>
+</section>
+<section><h2 id="next-specification-a-leading-sign">Next specification: a leading
+sign</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> test_signed_numbers():</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    check(<span class="st">&quot;-12.5&quot;</span>, <span class="op">-</span><span class="fl">12.5</span>)</span></code></pre></div>
+<p>Then check <code>"+7"</code> and <code>"-0.25"</code>.</p>
+<p><strong>A sign changes the value of the whole number.</strong></p>
+</section>
+<section><h2 id="bad-input-needs-a-specification">Bad input needs a
+specification</h2>
+<table>
+<thead>
+<tr>
+<th>Input</th>
+<th>This version promises</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>".5"</code>, <code>"5."</code></td>
+<td>0.5 and 5.0</td>
+</tr>
+<tr>
+<td><code>""</code>, <code>"+"</code>, <code>"."</code></td>
+<td>ValueError</td>
+</tr>
+<tr>
+<td><code>"12x"</code>, <code>"1.2.3"</code></td>
+<td>ValueError</td>
+</tr>
+<tr>
+<td><code>" 7"</code>, <code>"1e3"</code></td>
+<td>ValueError for now</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Decide the error behavior before coding it.</strong></p>
+</section>
+<section><h2 id="a-test-for-rejection">A test for rejection</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> check_rejected(text):</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span>:</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>        parse(text)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">except</span> <span class="pp">ValueError</span>:</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">raise</span> <span class="pp">AssertionError</span>(<span class="st">&quot;Expected ValueError&quot;</span>)</span></code></pre></div>
+<p><strong>A normal return must fail this test.</strong></p>
+</section>
+<section><h2 id="green-gives-us-room-to-refactor">Green gives us room to
+refactor</h2>
+<table>
+<thead>
+<tr>
+<th>Change</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Extract <code>check</code></td>
+<td>Remove repeated test logic</td>
+</tr>
+<tr>
+<td>Clarify a variable name</td>
+<td>Make the code easier to read</td>
+</tr>
+<tr>
+<td>Add negative numbers</td>
+<td>Introduce new behavior</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Keep restructuring separate from a new promise.</strong></p>
+</section>
+<section><h2 id="the-next-small-specification">The next small specification</h2>
+<p><code>"1e2"</code> should produce <code>100.0</code>.</p>
+<p>The current converter rejects it.</p>
+<p><strong>Change the specification deliberately, then implement
+it.</strong></p>
+</section></div></div>
+<script src="slide-assets/reveal.js"></script>
+<script>Reveal.initialize({width:1280,height:720,margin:0.05,center:true,hash:true,slideNumber:true,transition:'none'});</script>
+</body></html>

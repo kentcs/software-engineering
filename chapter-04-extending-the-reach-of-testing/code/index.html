@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Code: Extending the Reach of Testing</title>
+<style>
+* { box-sizing: border-box; }
+body { margin: 0; color: #172b36; background: #f5f7f9; font: 16px/1.5 system-ui, sans-serif; }
+main { max-width: 1600px; margin: auto; padding: 24px; }
+a { color: #12647a; }
+h1 { font-size: 26px; margin: 8px 0 20px; }
+.browser { display: grid; grid-template-columns: 270px minmax(0, 1fr); height: calc(100vh - 140px); min-height: 400px; border: 1px solid #ccd6dc; border-radius: 8px; overflow: hidden; background: white; }
+nav { overflow: auto; background: #edf2f5; border-right: 1px solid #ccd6dc; padding: 12px; }
+nav ul { list-style: none; padding: 0; margin: 0; }
+nav a { display: block; padding: 9px 10px; text-decoration: none; border-radius: 4px; overflow-wrap: anywhere; font: 14px/1.5 ui-monospace, monospace; }
+nav a:hover { background: #dfe9ed; }
+nav a[aria-current="true"] { background: #155e75; color: white; }
+a:focus-visible { outline: 3px solid #d18a00; outline-offset: -3px; }
+.viewer { min-width: 0; min-height: 0; }
+.source-file { height: 100%; display: flex; flex-direction: column; }
+.source-file[hidden] { display: none; }
+.file-header { padding: 12px 18px; border-bottom: 1px solid #ccd6dc; }
+h2 { font: 600 16px/1.5 ui-monospace, monospace; margin: 0; overflow-wrap: anywhere; }
+pre { flex: 1; min-height: 0; overflow: auto; margin: 0; padding: 20px; background: #fafbfc; tab-size: 4; }
+code { font: 14px/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+.binary { padding: 20px; }
+@media(max-width: 700px) { main { padding: 12px; } h1 { font-size: 21px; } .browser { grid-template-columns: 1fr; grid-template-rows: 160px minmax(0, 1fr); height: calc(100dvh - 130px); min-height: 480px; } nav { border-right: 0; border-bottom: 1px solid #ccd6dc; } }
+</style>
+</head>
+<body>
+<main>
+<a href="../index.html">Back to chapter</a>
+<h1>Extending the Reach of Testing: Code</h1>
+<div class="browser">
+<nav aria-label="Files"><ul><li><a href="#file-726571756972656d656e74732e747874">requirements.txt</a></li>
+<li><a href="#file-746573745f6170692e7079">test_api.py</a></li>
+<li><a href="#file-746573745f7374617469635f68746d6c2e7079">test_static_html.py</a></li>
+<li><a href="#file-746573745f77696b6970656469615f726573706f6e73652e7079">test_wikipedia_response.py</a></li>
+<li><a href="#file-746573745f77696b6970656469615f7765626472697665722e7079">test_wikipedia_webdriver.py</a></li></ul></nav>
+<div class="viewer"><section class="source-file" id="file-726571756972656d656e74732e747874" aria-labelledby="title-file-726571756972656d656e74732e747874"><header class="file-header"><h2 id="title-file-726571756972656d656e74732e747874">requirements.txt</h2></header><pre><code>requests&gt;=2.32,&lt;3
+beautifulsoup4&gt;=4.12,&lt;5
+selenium&gt;=4.6,&lt;5
+pytest&gt;=8,&lt;10
+</code></pre></section>
+<section class="source-file" id="file-746573745f6170692e7079" aria-labelledby="title-file-746573745f6170692e7079" hidden><header class="file-header"><h2 id="title-file-746573745f6170692e7079">test_api.py</h2></header><pre><code>import requests
+
+URL = "https://api.github.com/repos/python/cpython"
+HEADERS = {"Accept": "application/vnd.github+json",
+           "User-Agent": "SoftwareEngineeringCourse/1.0"}
+
+
+def test_repository_data():
+    response = requests.get(URL, headers=HEADERS, timeout=15)
+    assert response.status_code == 200, response.status_code
+    repo = response.json()
+    assert repo["full_name"] == "python/cpython"
+    assert repo["owner"]["login"] == "python"
+    assert repo["private"] is False
+    print(repo["full_name"], repo["description"])
+
+
+def main():
+    test_repository_data()
+
+
+if __name__ == "__main__":
+    main()
+</code></pre></section>
+<section class="source-file" id="file-746573745f7374617469635f68746d6c2e7079" aria-labelledby="title-file-746573745f7374617469635f68746d6c2e7079" hidden><header class="file-header"><h2 id="title-file-746573745f7374617469635f68746d6c2e7079">test_static_html.py</h2></header><pre><code>import requests
+from bs4 import BeautifulSoup
+
+URL = "https://en.wikipedia.org/wiki/Selenium_(software)"
+HEADERS = {"User-Agent": "SoftwareEngineeringCourse/1.0 (educational example)"}
+
+
+def test_wikipedia_html():
+    response = requests.get(URL, headers=HEADERS, timeout=15)
+    assert response.status_code == 200, response.status_code
+    soup = BeautifulSoup(response.text, "html.parser")
+    title = soup.find("h1")
+    assert title is not None
+    assert title.get_text(strip=True) == "Selenium (software)"
+    heading = soup.find(id="Selenium_WebDriver")
+    assert heading is not None
+    paragraph = heading.find_next("p")
+    assert paragraph is not None
+    text = paragraph.get_text(" ", strip=True)
+    assert "WebDriver" in text
+    print(text)
+    link = paragraph.find("a")
+    assert link is not None
+    print("First link:", link.get_text(" ", strip=True))
+    print("Destination:", link.get("href"))
+
+
+def main():
+    test_wikipedia_html()
+
+
+if __name__ == "__main__":
+    main()
+</code></pre></section>
+<section class="source-file" id="file-746573745f77696b6970656469615f726573706f6e73652e7079" aria-labelledby="title-file-746573745f77696b6970656469615f726573706f6e73652e7079" hidden><header class="file-header"><h2 id="title-file-746573745f77696b6970656469615f726573706f6e73652e7079">test_wikipedia_response.py</h2></header><pre><code>"""Retrieve Wikipedia HTML without parsing it or opening a browser."""
+import requests
+
+URL = "https://en.wikipedia.org/wiki/Selenium_(software)"
+HEADERS = {"User-Agent": "SoftwareEngineeringCourse/1.0 (educational example)"}
+
+
+def test_wikipedia_response():
+    response = requests.get(URL, headers=HEADERS, timeout=15)
+    assert response.status_code == 200, response.status_code
+    assert "text/html" in response.headers["Content-Type"]
+    assert "Selenium_WebDriver" in response.text
+    print("HTTP status:", response.status_code)
+    print(response.text[:500])
+
+
+def main():
+    test_wikipedia_response()
+
+
+if __name__ == "__main__":
+    main()
+</code></pre></section>
+<section class="source-file" id="file-746573745f77696b6970656469615f7765626472697665722e7079" aria-labelledby="title-file-746573745f77696b6970656469615f7765626472697665722e7079" hidden><header class="file-header"><h2 id="title-file-746573745f77696b6970656469615f7765626472697665722e7079">test_wikipedia_webdriver.py</h2></header><pre><code>from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
+
+def software_suggestion(browser):
+    for item in browser.find_elements(By.CSS_SELECTOR, ".cdx-menu-item"):
+        if item.is_displayed():
+            label = item.text.split("\n", 1)[0]
+            if label == "Selenium (software)":
+                return item.find_element(By.TAG_NAME, "a")
+    return False
+
+
+def test_wikipedia_search():
+    browser = webdriver.Chrome()
+    try:
+        browser.set_window_size(1280, 900)
+        browser.set_page_load_timeout(30)
+        browser.get("https://en.wikipedia.org/wiki/Main_Page")
+        wait = WebDriverWait(browser, 15)
+        search = wait.until(EC.element_to_be_clickable((By.NAME, "search")))
+        search.send_keys("Selenium")
+        suggestion = wait.until(software_suggestion)
+        suggestion.click()
+        wait.until(EC.text_to_be_present_in_element(
+            (By.ID, "firstHeading"), "Selenium (software)"))
+        assert browser.find_element(By.ID, "firstHeading").text == "Selenium (software)"
+        heading = wait.until(EC.presence_of_element_located(
+            (By.ID, "Selenium_WebDriver")))
+        paragraph = heading.find_element(By.XPATH, "following::p[1]")
+        text = paragraph.text.strip()
+        assert "WebDriver" in text
+        print(text)
+    finally:
+        browser.quit()
+
+
+def main():
+    test_wikipedia_search()
+
+
+if __name__ == "__main__":
+    main()
+</code></pre></section></div>
+</div>
+<p>The files are available in the <a href="https://github.com/kentcs/software-engineering/tree/main/chapter-04-extending-the-reach-of-testing/code">course repository</a>.</p>
+</main>
+<script>
+const links = [...document.querySelectorAll('nav a')];
+const panels = [...document.querySelectorAll('.source-file')];
+function showFile() {
+ const selected = links.find(link => link.hash === location.hash) || links[0];
+ if (!selected) return;
+ for (const link of links) link === selected ? link.setAttribute('aria-current', 'true') : link.removeAttribute('aria-current');
+ for (const panel of panels) panel.hidden = '#' + panel.id !== selected.hash;
+}
+window.addEventListener('hashchange', showFile);
+showFile();
+</script>
+</body>
+</html>
