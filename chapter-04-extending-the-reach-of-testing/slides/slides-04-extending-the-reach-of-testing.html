@@ -91,7 +91,7 @@ printed output.</p>
 <p><strong>Each example uses a test_ function and
 assertions.</strong></p>
 </section>
-<section><h2 id="live-get-github-api-data">Live: get GitHub API data</h2>
+<section><h2 id="example-get-github-api-data">Example: get GitHub API data</h2>
 <div class="sourceCode" id="cb1"><pre
 class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>url <span class="op">=</span> <span class="st">&quot;https://api.github.com/repos/python/cpython&quot;</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>response <span class="op">=</span> requests.get(url, timeout<span class="op">=</span><span class="dv">15</span>)</span>
@@ -104,7 +104,7 @@ Run: <code>python -m pytest -v -s test_api.py</code><br>Prints
 python/cpython and its description.
 </div>
 </section>
-<section><h2 id="live-choose-useful-checks">Live: choose useful checks</h2>
+<section><h2 id="example-choose-useful-checks">Example: choose useful checks</h2>
 <div class="sourceCode" id="cb1"><pre
 class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> response.status_code <span class="op">==</span> <span class="dv">200</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> repo[<span class="st">&quot;full_name&quot;</span>] <span class="op">==</span> <span class="st">&quot;python/cpython&quot;</span></span>
@@ -116,7 +116,8 @@ Run: <code>python -m pytest -v -s test_api.py</code><br>Shows the test
 result and repository details.
 </div>
 </section>
-<section><h2 id="live-retrieve-wikipedia-html">Live: retrieve Wikipedia HTML</h2>
+<section><h2 id="example-retrieve-wikipedia-html">Example: retrieve Wikipedia
+HTML</h2>
 <div class="sourceCode" id="cb1"><pre
 class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>url <span class="op">=</span> <span class="st">&quot;https://en.wikipedia.org/wiki/Selenium_(software)&quot;</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>response <span class="op">=</span> requests.get(url, timeout<span class="op">=</span><span class="dv">15</span>)</span>
@@ -130,7 +131,7 @@ test_wikipedia_response.py</code><br>Prints status 200 and the first 500
 HTML characters.
 </div>
 </section>
-<section><h2 id="live-decode-the-html">Live: decode the HTML</h2>
+<section><h2 id="example-decode-the-html">Example: decode the HTML</h2>
 <div class="sourceCode" id="cb1"><pre
 class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>soup <span class="op">=</span> BeautifulSoup(html, <span class="st">&quot;html.parser&quot;</span>)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>heading <span class="op">=</span> soup.find(<span class="bu">id</span><span class="op">=</span><span class="st">&quot;Selenium_WebDriver&quot;</span>)</span>
@@ -145,7 +146,7 @@ Run: <code>python -m pytest -v -s test_static_html.py</code><br>Prints
 the WebDriver paragraph and its first link.
 </div>
 </section>
-<section><h2 id="live-examine-a-link">Live: examine a link</h2>
+<section><h2 id="example-examine-a-link">Example: examine a link</h2>
 <div class="sourceCode" id="cb1"><pre
 class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>link <span class="op">=</span> paragraph.find(<span class="st">&quot;a&quot;</span>)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> link <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span></span>
@@ -164,7 +165,7 @@ software article</strong></p>
 <p>Selenium -&gt; ChromeDriver -&gt; Chrome</p>
 <p><strong>Which part requires the running browser?</strong></p>
 </section>
-<section><h2 id="live-type-into-wikipedia">Live: type into Wikipedia</h2>
+<section><h2 id="example-type-into-wikipedia">Example: type into Wikipedia</h2>
 <div class="sourceCode" id="cb1"><pre
 class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>browser.get(<span class="st">&quot;https://en.wikipedia.org/wiki/Main_Page&quot;</span>)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>search <span class="op">=</span> wait.until(EC.element_to_be_clickable(</span>
@@ -177,7 +178,8 @@ test_wikipedia_webdriver.py</code><br>Full demo: opens Chrome, searches,
 prints text, closes.
 </div>
 </section>
-<section><h2 id="live-select-the-suggestion">Live: select the suggestion</h2>
+<section><h2 id="example-select-the-suggestion">Example: select the
+suggestion</h2>
 <div class="sourceCode" id="cb1"><pre
 class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>suggestion <span class="op">=</span> wait.until(software_suggestion)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>suggestion.click()</span></code></pre></div>
@@ -190,7 +192,7 @@ test_wikipedia_webdriver.py</code><br>The full demo selects Selenium
 (software).
 </div>
 </section>
-<section><h2 id="live-read-the-result">Live: read the result</h2>
+<section><h2 id="example-read-the-result">Example: read the result</h2>
 <div class="sourceCode" id="cb1"><pre
 class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>heading <span class="op">=</span> browser.find_element(By.ID, <span class="st">&quot;Selenium_WebDriver&quot;</span>)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>paragraph <span class="op">=</span> heading.find_element(By.XPATH, <span class="st">&quot;following::p[1]&quot;</span>)</span>
