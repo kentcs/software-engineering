@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Software Engineering: Testing as Requirements Definition</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="slide-assets/reveal.css">
+<link rel="stylesheet" href="slide-assets/slides.css">
+</head><body><div class="reveal"><div class="slides"><section><h1 id="testing-as-requirements-definition">Testing as Requirements
+Definition</h1>
+<p class="subtitle">
+Concrete examples that people can agree on
+</p>
+<hr>
+<p class="slide-author">
+Gregory S. DeLozier, PhD
+</p>
+</section>
+<section><h2 id="who-can-approve-this-requirement">Who can approve this
+requirement?</h2>
+<blockquote>
+<p>The Wikipedia light bulb page should mention Edison.</p>
+</blockquote>
+<p>Behavior-driven development (BDD) starts with examples people can
+discuss.</p>
+<p><strong>What exactly would count as passing?</strong></p>
+</section>
+<section><h2 id="start-with-the-test-we-know">Start with the test we know</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>text <span class="op">=</span> browser.find_element(By.TAG_NAME, <span class="st">&quot;body&quot;</span>).text</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="st">&quot;Edison&quot;</span> <span class="kw">in</span> text</span></code></pre></div>
+<p>From this chapter’s <code>code/</code> folder:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python3</span> <span class="at">-m</span> pytest <span class="at">-v</span> test_light_bulb_search.py</span></code></pre></div>
+<p><strong>Where is the requirement in this code?</strong></p>
+</section>
+<section><h2 id="a-readable-executable-example">A readable executable
+example</h2>
+<pre class="gherkin"><code>Feature: Inventors on Wikipedia
+  Scenario: The light bulb page mentions Edison
+    Given I have opened the Wikipedia home page
+    When I search for Light Bulb
+    Then the page text contains Edison</code></pre>
+<p>Gherkin describes the example; behave runs its Python steps.</p>
+<p><strong>Could someone outside the development team review
+this?</strong></p>
+</section>
+<section><h2 id="three-different-jobs">Three different jobs</h2>
+<table>
+<thead>
+<tr>
+<th>Clause</th>
+<th>Job</th>
+<th>Here</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Given</td>
+<td>Establish the starting state</td>
+<td>Wikipedia is open</td>
+</tr>
+<tr>
+<td>When</td>
+<td>Perform an action</td>
+<td>Search for Light Bulb</td>
+</tr>
+<tr>
+<td>Then</td>
+<td>Check the result</td>
+<td>Find Edison in the text</td>
+</tr>
+</tbody>
+</table>
+<p><strong>If Given fails, what have we learned?</strong></p>
+</section>
+<section><h2 id="two-files-one-requirement">Two files, one requirement</h2>
+<pre class="text"><code>01-direct/
+  features/
+    light_bulb.feature
+    steps/
+      wikipedia_steps.py</code></pre>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Contains</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Feature</td>
+<td>The example people agree on</td>
+</tr>
+<tr>
+<td>Steps</td>
+<td>The Python that carries it out</td>
+</tr>
+</tbody>
+</table>
+<p><strong>The wording has to match the step definitions.</strong></p>
+</section>
+<section><h2 id="installing-the-runner">Installing the runner</h2>
+<p>From the chapter’s <code>code/</code> folder, in the course
+environment:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python3</span> <span class="at">-m</span> pip install <span class="at">-r</span> requirements.txt</span></code></pre></div>
+<div class="setup-note">
+<p>Windows: use <code>py</code> in place of <code>python3</code> outside
+an activated environment. Chrome must be installed for the browser
+examples. Selenium Manager handles the matching driver; first use may
+need network access.</p>
+</div>
+</section>
+<section><h2 id="given-establish-the-starting-state">Given: establish the
+starting state</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="at">@given</span>(<span class="st">&quot;I have opened the Wikipedia home page&quot;</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> open_home_page(context):</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    context.browser <span class="op">=</span> webdriver.Chrome()</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    context.add_cleanup(context.browser.quit)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    context.wait <span class="op">=</span> WebDriverWait(context.browser, <span class="dv">15</span>)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    context.browser.get(</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;https://en.wikipedia.org/wiki/Main_Page&quot;</span>)</span></code></pre></div>
+<p>The saved example also waits for a usable search box.</p>
+</section>
+<section><h2 id="when-perform-and-check-the-action">When: perform and check the
+action</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>start <span class="op">=</span> context.browser.current_url</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>box <span class="op">=</span> context.browser.find_element(By.NAME, <span class="st">&quot;search&quot;</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>box.send_keys(<span class="st">&quot;Light Bulb&quot;</span>, Keys.ENTER)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>context.wait.until(EC.url_changes(start))</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>heading <span class="op">=</span> context.browser.find_element(</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    By.ID, <span class="st">&quot;firstHeading&quot;</span>).text</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="kw">not</span> heading.startswith(<span class="st">&quot;Search results&quot;</span>), heading</span></code></pre></div>
+<p><strong>Why wait for a URL change?</strong></p>
+</section>
+<section><h2 id="then-check-the-agreed-result">Then: check the agreed result</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="at">@then</span>(<span class="st">&quot;the page text contains Edison&quot;</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> page_text_contains_edison(context):</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    text <span class="op">=</span> context.browser.find_element(</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>        By.TAG_NAME, <span class="st">&quot;body&quot;</span>).text</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span> <span class="st">&quot;Edison&quot;</span> <span class="kw">in</span> text</span></code></pre></div>
+<p><strong>No extra navigation hidden inside the check.</strong></p>
+</section>
+<section><h2 id="live-run-the-first-scenario">Live: run the first scenario</h2>
+<p>From <code>code/</code>:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> 01-direct</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python3</span> <span class="at">-m</span> behave</span></code></pre></div>
+<p>Expected: <strong>1 scenario passed, 3 steps passed</strong>.</p>
+<p>Change <code>Edison</code> to <code>Edisonn</code> in the Then step’s
+assertion.</p>
+<p><strong>Which step fails? What does the report tell us?</strong></p>
+</section>
+<section><h2 id="a-second-example-exposes-repetition">A second example exposes
+repetition</h2>
+<pre class="gherkin"><code>Scenario: The helicopter page mentions Sikorsky
+  Given I have opened the Wikipedia home page
+  When I search for Helicopter
+  Then the page text contains Sikorsky</code></pre>
+<p>From <code>code/02-helicopter/</code>:
+<code>python3 -m behave</code></p>
+<p>Expected: <strong>2 scenarios, 6 passing steps</strong>.</p>
+<p><strong>What changed? What stayed the same?</strong></p>
+</section>
+<section><h2 id="reuse-the-operation-vary-the-data">Reuse the operation; vary the
+data</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="at">@when</span>(<span class="st">&quot;I search for </span><span class="sc">{invention}</span><span class="st">&quot;</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> search_for_invention(context, invention):</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="co"># The same search operation, using invention.</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    ...</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="at">@then</span>(<span class="st">&quot;the page text contains </span><span class="sc">{inventor}</span><span class="st">&quot;</span>)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> page_text_contains_inventor(context, inventor):</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    text <span class="op">=</span> context.browser.find_element(</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>        By.TAG_NAME, <span class="st">&quot;body&quot;</span>).text</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span> inventor <span class="kw">in</span> text</span></code></pre></div>
+<p>Complete code: <code>03-reusable/features/steps/</code></p>
+</section>
+<section><h2 id="one-scenario-several-examples">One scenario, several
+examples</h2>
+<pre class="gherkin"><code>Scenario Outline: An invention page names its inventor
+  Given I have opened the Wikipedia home page
+  When I search for &lt;invention&gt;
+  Then the page text contains &lt;inventor&gt;
+
+  Examples:
+    | invention  | inventor |
+    | Light Bulb | Edison   |
+    | Helicopter | Sikorsky |</code></pre>
+<p>From <code>code/03-reusable/</code>:
+<code>python3 -m behave</code></p>
+</section>
+<section><h2 id="live-add-a-row-not-a-function">Live: add a row, not a
+function</h2>
+<table>
+<thead>
+<tr>
+<th>invention</th>
+<th>inventor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Telephone</td>
+<td>Bell</td>
+</tr>
+<tr>
+<td>Printing Press</td>
+<td>Gutenberg</td>
+</tr>
+<tr>
+<td>Dynamite</td>
+<td>Nobel</td>
+</tr>
+</tbody>
+</table>
+<p>From <code>code/04-examples-table/</code>:
+<code>python3 -m behave</code></p>
+<p>Expected: <strong>10 scenarios, 30 passing steps</strong>.</p>
+<p><strong>Add a new search and an expected name. Predict the
+result.</strong></p>
+</section>
+<section><h2 id="keep-the-setup-visible">Keep the setup visible</h2>
+<pre class="gherkin"><code>Background:
+  Given I have opened the Wikipedia home page
+
+Scenario Outline: An invention page names its inventor
+  When I search for &lt;invention&gt;
+  Then the page text contains &lt;inventor&gt;</code></pre>
+<p>From <code>code/05-background/</code>:
+<code>python3 -m behave</code></p>
+<p><strong>Background runs before every scenario, including every
+row.</strong></p>
+</section>
+<section><h2 id="hooks-handle-test-machinery">Hooks handle test machinery</h2>
+<table>
+<thead>
+<tr>
+<th>Hook</th>
+<th>This example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>before_all</td>
+<td>Open one browser</td>
+</tr>
+<tr>
+<td>before_scenario</td>
+<td>Clear cookies</td>
+</tr>
+<tr>
+<td>after_scenario</td>
+<td>Save a screenshot on failure</td>
+</tr>
+<tr>
+<td>after_all</td>
+<td>Close the browser</td>
+</tr>
+</tbody>
+</table>
+<p>From <code>code/06-hooks/</code>: <code>python3 -m behave</code></p>
+<p><strong>What could leak from one scenario into another?</strong></p>
+</section>
+<section><h2 id="failure-leaves-something-to-inspect">Failure leaves something to
+inspect</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> after_scenario(context, scenario):</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> scenario.status <span class="op">==</span> <span class="st">&quot;failed&quot;</span>:</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>        name <span class="op">=</span> re.sub(<span class="vs">r&quot;</span><span class="dv">\W</span><span class="op">+</span><span class="vs">&quot;</span>, <span class="st">&quot;-&quot;</span>, scenario.name)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>        <span class="co"># The saved version also normalizes the name.</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>        os.makedirs(<span class="st">&quot;screenshots&quot;</span>, exist_ok<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>        context.browser.save_screenshot(</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>            <span class="ss">f&quot;screenshots/</span><span class="sc">{</span>name<span class="sc">}</span><span class="ss">.png&quot;</span>)</span></code></pre></div>
+<p><strong>A screenshot helps explain a failure. It does not decide
+correctness.</strong></p>
+</section>
+<section><h2 id="the-requirement-does-not-need-a-browser">The requirement does
+not need a browser</h2>
+<blockquote>
+<p>A spreadsheet cell should accept the numeric forms we support.</p>
+</blockquote>
+<div class="compact-table">
+<table>
+<thead>
+<tr>
+<th>Input</th>
+<th>Agreed result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>007</code></td>
+<td>7</td>
+</tr>
+<tr>
+<td><code>.5</code></td>
+<td>0.5</td>
+</tr>
+<tr>
+<td><code>-12.5</code></td>
+<td>-12.5</td>
+</tr>
+<tr>
+<td><code>1e3</code></td>
+<td>Rejected by this version</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Which decisions belong to the customer?</strong></p>
+</section>
+<section><h2 id="make-the-accepted-forms-explicit">Make the accepted forms
+explicit</h2>
+<pre class="gherkin"><code>Scenario Outline: A numeric cell
+  When I type &quot;&lt;entry&gt;&quot; into a cell
+  Then the cell holds the number &lt;number&gt;
+
+  Examples:
+    | entry | number |
+    | 007   | 7      |
+    | .5    | 0.5    |
+    | -12.5 | -12.5  |</code></pre>
+<p><strong>The table is a small, reviewable specification.</strong></p>
+</section>
+<section><h2 id="when-records-what-happened">When records what happened</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="at">@when</span>(<span class="st">&#39;I type &quot;</span><span class="sc">{entry}</span><span class="st">&quot; into a cell&#39;</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> enter_cell(context, entry):</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    context.value <span class="op">=</span> <span class="va">None</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    context.error <span class="op">=</span> <span class="va">None</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span>:</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>        context.value <span class="op">=</span> parse(entry)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">except</span> <span class="pp">ValueError</span> <span class="im">as</span> error:</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>        context.error <span class="op">=</span> error</span></code></pre></div>
+<p><strong>Rejection can be the expected result.</strong></p>
+</section>
+<section><h2 id="then-decides-whether-it-was-right">Then decides whether it was
+right</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="at">@then</span>(<span class="st">&quot;the cell holds the number </span><span class="sc">{number}</span><span class="st">&quot;</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> check_number(context, number):</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span> context.error <span class="kw">is</span> <span class="va">None</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span> math.isclose(context.value, <span class="bu">float</span>(number),</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>                        rel_tol<span class="op">=</span><span class="fl">1e-12</span>, abs_tol<span class="op">=</span><span class="fl">1e-12</span>)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="at">@then</span>(<span class="st">&quot;the cell is rejected as not a number&quot;</span>)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> check_rejection(context):</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span> context.error <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span></span></code></pre></div>
+<p>The complete steps include diagnostic messages.</p>
+</section>
+<section><h2 id="live-test-a-disputed-requirement">Live: test a disputed
+requirement</h2>
+<p>From <code>code/07-spreadsheet-parser/</code>:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python3</span> <span class="at">-m</span> behave</span></code></pre></div>
+<p>Expected: <strong>21 scenarios, 42 passing steps</strong>.</p>
+<p>Move <code>1e3</code> from the rejection table to an accepted row
+with <code>1000</code>.</p>
+<p><strong>The test fails. Is the implementation wrong, or did the
+requirement change?</strong></p>
+</section>
+<section><h2 id="choose-the-level-that-answers-the-question">Choose the level
+that answers the question</h2>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Question</th>
+<th>Mechanism</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Does a numeric string parse correctly?</td>
+<td>Call the function</td>
+</tr>
+<tr>
+<td>Does a Wikipedia search reach useful content?</td>
+<td>Drive the browser</td>
+</tr>
+<tr>
+<td>Do we agree on the required behavior?</td>
+<td>Review concrete examples together</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Use the smallest test that answers the real
+question.</strong></p>
+</section>
+<section><h2 id="readable-tests-still-need-judgment">Readable tests still need
+judgment</h2>
+<blockquote>
+<p>“Edison” appears in a footnote.</p>
+</blockquote>
+<p>The scenario passes.</p>
+<p><strong>Did we test what we meant?</strong></p>
+<p>Agree on an example. Connect it to a check. Revisit the agreement
+when evidence changes.</p>
+</section></div></div>
+<script src="slide-assets/reveal.js"></script>
+<script>Reveal.initialize({width:1280,height:720,margin:0.05,center:true,hash:true,slideNumber:true,transition:'none'});</script>
+</body></html>

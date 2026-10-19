@@ -1,0 +1,619 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Code: Testing as Requirements Definition</title>
+<style>
+* { box-sizing: border-box; }
+body { margin: 0; color: #172b36; background: #f5f7f9; font: 16px/1.5 system-ui, sans-serif; }
+main { max-width: 1600px; margin: auto; padding: 24px; }
+a { color: #12647a; }
+h1 { font-size: 26px; margin: 8px 0 20px; }
+.browser { display: grid; grid-template-columns: 270px minmax(0, 1fr); height: calc(100vh - 140px); min-height: 400px; border: 1px solid #ccd6dc; border-radius: 8px; overflow: hidden; background: white; }
+nav { overflow: auto; background: #edf2f5; border-right: 1px solid #ccd6dc; padding: 12px; }
+nav ul { list-style: none; padding: 0; margin: 0; }
+nav a { display: block; padding: 9px 10px; text-decoration: none; border-radius: 4px; overflow-wrap: anywhere; font: 14px/1.5 ui-monospace, monospace; }
+nav a:hover { background: #dfe9ed; }
+nav a[aria-current="true"] { background: #155e75; color: white; }
+a:focus-visible { outline: 3px solid #d18a00; outline-offset: -3px; }
+.viewer { min-width: 0; min-height: 0; }
+.source-file { height: 100%; display: flex; flex-direction: column; }
+.source-file[hidden] { display: none; }
+.file-header { padding: 12px 18px; border-bottom: 1px solid #ccd6dc; }
+h2 { font: 600 16px/1.5 ui-monospace, monospace; margin: 0; overflow-wrap: anywhere; }
+pre { flex: 1; min-height: 0; overflow: auto; margin: 0; padding: 20px; background: #fafbfc; tab-size: 4; }
+code { font: 14px/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+.binary { padding: 20px; }
+@media(max-width: 700px) { main { padding: 12px; } h1 { font-size: 21px; } .browser { grid-template-columns: 1fr; grid-template-rows: 160px minmax(0, 1fr); height: calc(100dvh - 130px); min-height: 480px; } nav { border-right: 0; border-bottom: 1px solid #ccd6dc; } }
+</style>
+</head>
+<body>
+<main>
+<a href="../index.html">Back to chapter</a>
+<h1>Testing as Requirements Definition: Code</h1>
+<div class="browser">
+<nav aria-label="Files"><ul><li><a href="#file-30312d6469726563742f66656174757265732f6c696768745f62756c622e66656174757265">01-direct/features/light_bulb.feature</a></li>
+<li><a href="#file-30312d6469726563742f66656174757265732f73746570732f77696b6970656469615f73746570732e7079">01-direct/features/steps/wikipedia_steps.py</a></li>
+<li><a href="#file-30322d68656c69636f707465722f66656174757265732f696e76656e746f72732e66656174757265">02-helicopter/features/inventors.feature</a></li>
+<li><a href="#file-30322d68656c69636f707465722f66656174757265732f73746570732f77696b6970656469615f73746570732e7079">02-helicopter/features/steps/wikipedia_steps.py</a></li>
+<li><a href="#file-30332d7265757361626c652f66656174757265732f696e76656e746f72732e66656174757265">03-reusable/features/inventors.feature</a></li>
+<li><a href="#file-30332d7265757361626c652f66656174757265732f73746570732f77696b6970656469615f73746570732e7079">03-reusable/features/steps/wikipedia_steps.py</a></li>
+<li><a href="#file-30342d6578616d706c65732d7461626c652f66656174757265732f696e76656e746f72732e66656174757265">04-examples-table/features/inventors.feature</a></li>
+<li><a href="#file-30342d6578616d706c65732d7461626c652f66656174757265732f73746570732f77696b6970656469615f73746570732e7079">04-examples-table/features/steps/wikipedia_steps.py</a></li>
+<li><a href="#file-30352d6261636b67726f756e642f66656174757265732f696e76656e746f72732e66656174757265">05-background/features/inventors.feature</a></li>
+<li><a href="#file-30352d6261636b67726f756e642f66656174757265732f73746570732f77696b6970656469615f73746570732e7079">05-background/features/steps/wikipedia_steps.py</a></li>
+<li><a href="#file-30362d686f6f6b732f66656174757265732f656e7669726f6e6d656e742e7079">06-hooks/features/environment.py</a></li>
+<li><a href="#file-30362d686f6f6b732f66656174757265732f696e76656e746f72732e66656174757265">06-hooks/features/inventors.feature</a></li>
+<li><a href="#file-30362d686f6f6b732f66656174757265732f73746570732f77696b6970656469615f73746570732e7079">06-hooks/features/steps/wikipedia_steps.py</a></li>
+<li><a href="#file-30372d73707265616473686565742d7061727365722f66656174757265732f63656c6c732e7079">07-spreadsheet-parser/features/cells.py</a></li>
+<li><a href="#file-30372d73707265616473686565742d7061727365722f66656174757265732f6e756d626572735f696e5f63656c6c732e66656174757265">07-spreadsheet-parser/features/numbers_in_cells.feature</a></li>
+<li><a href="#file-30372d73707265616473686565742d7061727365722f66656174757265732f73746570732f63656c6c5f73746570732e7079">07-spreadsheet-parser/features/steps/cell_steps.py</a></li>
+<li><a href="#file-726571756972656d656e74732e747874">requirements.txt</a></li>
+<li><a href="#file-746573745f6c696768745f62756c622e7079">test_light_bulb.py</a></li>
+<li><a href="#file-746573745f6c696768745f62756c625f7365617263682e7079">test_light_bulb_search.py</a></li>
+<li><a href="#file-77696b692e7079">wiki.py</a></li></ul></nav>
+<div class="viewer"><section class="source-file" id="file-30312d6469726563742f66656174757265732f6c696768745f62756c622e66656174757265" aria-labelledby="title-file-30312d6469726563742f66656174757265732f6c696768745f62756c622e66656174757265"><header class="file-header"><h2 id="title-file-30312d6469726563742f66656174757265732f6c696768745f62756c622e66656174757265">01-direct/features/light_bulb.feature</h2></header><pre><code>Feature: Inventors on Wikipedia
+
+  Scenario: The light bulb page mentions Edison
+    Given I have opened the Wikipedia home page
+    When I search for Light Bulb
+    Then the page text contains Hanks
+</code></pre></section>
+<section class="source-file" id="file-30312d6469726563742f66656174757265732f73746570732f77696b6970656469615f73746570732e7079" aria-labelledby="title-file-30312d6469726563742f66656174757265732f73746570732f77696b6970656469615f73746570732e7079" hidden><header class="file-header"><h2 id="title-file-30312d6469726563742f66656174757265732f73746570732f77696b6970656469615f73746570732e7079">01-direct/features/steps/wikipedia_steps.py</h2></header><pre><code>from behave import given, when, then
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
+
+@given("I have opened the Wikipedia home page")
+def open_home_page(context):
+    # Set up the precondition...
+    context.browser = webdriver.Chrome()
+    context.add_cleanup(context.browser.quit)
+    context.wait = WebDriverWait(context.browser, 15)
+    context.browser.get("https://en.wikipedia.org/wiki/Main_Page")
+    # ...and verify it: the home page is up and its search box is usable.
+    context.wait.until(EC.element_to_be_clickable((By.NAME, "search")))
+
+
+@when("I search for Light Bulb")
+def search_for_light_bulb(context):
+    start = context.browser.current_url
+    box = context.browser.find_element(By.NAME, "search")
+    box.send_keys("Light Bulb", Keys.ENTER)
+    # Verify the action was taken: we left the home page for an article.
+    context.wait.until(EC.url_changes(start))
+    heading = context.browser.find_element(By.ID, "firstHeading").text
+    assert not heading.startswith("Search results"), heading
+
+
+@then("the page text contains Hanks")
+def page_text_contains_edison(context):
+    text = context.browser.find_element(By.TAG_NAME, "body").text
+    assert "Edisonn" in text
+</code></pre></section>
+<section class="source-file" id="file-30322d68656c69636f707465722f66656174757265732f696e76656e746f72732e66656174757265" aria-labelledby="title-file-30322d68656c69636f707465722f66656174757265732f696e76656e746f72732e66656174757265" hidden><header class="file-header"><h2 id="title-file-30322d68656c69636f707465722f66656174757265732f696e76656e746f72732e66656174757265">02-helicopter/features/inventors.feature</h2></header><pre><code>Feature: Inventors on Wikipedia
+
+  Scenario: The light bulb page mentions Edison
+    Given I have opened the Wikipedia home page
+    When I search for Light Bulb
+    Then the page text contains Edison
+
+  Scenario: The helicopter page mentions Sikorsky
+    Given I have opened the Wikipedia home page
+    When I search for Helicopter
+    Then the page text contains Sikorsky
+</code></pre></section>
+<section class="source-file" id="file-30322d68656c69636f707465722f66656174757265732f73746570732f77696b6970656469615f73746570732e7079" aria-labelledby="title-file-30322d68656c69636f707465722f66656174757265732f73746570732f77696b6970656469615f73746570732e7079" hidden><header class="file-header"><h2 id="title-file-30322d68656c69636f707465722f66656174757265732f73746570732f77696b6970656469615f73746570732e7079">02-helicopter/features/steps/wikipedia_steps.py</h2></header><pre><code>from behave import given, when, then
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
+
+@given("I have opened the Wikipedia home page")
+def open_home_page(context):
+    # Set up the precondition...
+    context.browser = webdriver.Chrome()
+    context.add_cleanup(context.browser.quit)
+    context.wait = WebDriverWait(context.browser, 15)
+    context.browser.get("https://en.wikipedia.org/wiki/Main_Page")
+    # ...and verify it: the home page is up and its search box is usable.
+    context.wait.until(EC.element_to_be_clickable((By.NAME, "search")))
+
+
+@when("I search for Light Bulb")
+def search_for_light_bulb(context):
+    start = context.browser.current_url
+    box = context.browser.find_element(By.NAME, "search")
+    box.send_keys("Light Bulb", Keys.ENTER)
+    # Verify the action was taken: we left the home page for an article.
+    context.wait.until(EC.url_changes(start))
+    heading = context.browser.find_element(By.ID, "firstHeading").text
+    assert not heading.startswith("Search results"), heading
+
+
+@then("the page text contains Edison")
+def page_text_contains_edison(context):
+    text = context.browser.find_element(By.TAG_NAME, "body").text
+    assert "Edison" in text
+
+
+@when("I search for Helicopter")
+def search_for_helicopter(context):
+    start = context.browser.current_url
+    box = context.browser.find_element(By.NAME, "search")
+    box.send_keys("Helicopter", Keys.ENTER)
+    # Verify the action was taken: we left the home page for an article.
+    context.wait.until(EC.url_changes(start))
+    heading = context.browser.find_element(By.ID, "firstHeading").text
+    assert not heading.startswith("Search results"), heading
+
+
+@then("the page text contains Sikorsky")
+def page_text_contains_sikorsky(context):
+    text = context.browser.find_element(By.TAG_NAME, "body").text
+    assert "Sikorsky" in text
+</code></pre></section>
+<section class="source-file" id="file-30332d7265757361626c652f66656174757265732f696e76656e746f72732e66656174757265" aria-labelledby="title-file-30332d7265757361626c652f66656174757265732f696e76656e746f72732e66656174757265" hidden><header class="file-header"><h2 id="title-file-30332d7265757361626c652f66656174757265732f696e76656e746f72732e66656174757265">03-reusable/features/inventors.feature</h2></header><pre><code>Feature: Inventors on Wikipedia
+
+  Scenario Outline: An invention's page names its inventor
+    Given I have opened the Wikipedia home page
+    When I search for &lt;invention&gt;
+    Then the page text contains &lt;inventor&gt;
+
+    Examples:
+      | invention  | inventor |
+      | Light Bulb | Edison   |
+      | Helicopter | Sikorsky |
+</code></pre></section>
+<section class="source-file" id="file-30332d7265757361626c652f66656174757265732f73746570732f77696b6970656469615f73746570732e7079" aria-labelledby="title-file-30332d7265757361626c652f66656174757265732f73746570732f77696b6970656469615f73746570732e7079" hidden><header class="file-header"><h2 id="title-file-30332d7265757361626c652f66656174757265732f73746570732f77696b6970656469615f73746570732e7079">03-reusable/features/steps/wikipedia_steps.py</h2></header><pre><code>from behave import given, when, then
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
+
+@given("I have opened the Wikipedia home page")
+def open_home_page(context):
+    # Set up the precondition...
+    context.browser = webdriver.Chrome()
+    context.add_cleanup(context.browser.quit)
+    context.wait = WebDriverWait(context.browser, 15)
+    context.browser.get("https://en.wikipedia.org/wiki/Main_Page")
+    # ...and verify it: the home page is up and its search box is usable.
+    context.wait.until(EC.element_to_be_clickable((By.NAME, "search")))
+
+
+@when("I search for {invention}")
+def search_for_invention(context, invention):
+    start = context.browser.current_url
+    box = context.browser.find_element(By.NAME, "search")
+    box.send_keys(invention, Keys.ENTER)
+    # Verify the action was taken: we left the home page for an article.
+    context.wait.until(EC.url_changes(start))
+    heading = context.browser.find_element(By.ID, "firstHeading").text
+    assert not heading.startswith("Search results"), heading
+
+
+@then("the page text contains {inventor}")
+def page_text_contains_inventor(context, inventor):
+    text = context.browser.find_element(By.TAG_NAME, "body").text
+    assert inventor in text
+</code></pre></section>
+<section class="source-file" id="file-30342d6578616d706c65732d7461626c652f66656174757265732f696e76656e746f72732e66656174757265" aria-labelledby="title-file-30342d6578616d706c65732d7461626c652f66656174757265732f696e76656e746f72732e66656174757265" hidden><header class="file-header"><h2 id="title-file-30342d6578616d706c65732d7461626c652f66656174757265732f696e76656e746f72732e66656174757265">04-examples-table/features/inventors.feature</h2></header><pre><code>Feature: Inventors on Wikipedia
+
+  Scenario Outline: An invention's page names its inventor
+    Given I have opened the Wikipedia home page
+    When I search for &lt;invention&gt;
+    Then the page text contains &lt;inventor&gt;
+
+    Examples: Communication
+      | invention  | inventor |
+      | Telephone  | Bell     |
+      | Radio      | Marconi  |
+      | Telegraphy | Morse    |
+
+    Examples: Recording and light
+      | invention  | inventor |
+      | Phonograph | Edison   |
+      | Light Bulb | Edison   |
+
+    Examples: Flight
+      | invention  | inventor |
+      | Helicopter | Sikorsky |
+      | Airplane   | Wright   |
+
+    Examples: Industry
+      | invention      | inventor  |
+      | Printing Press | Gutenberg |
+      | Steam Engine   | Watt      |
+      | Dynamite       | Nobel     |
+</code></pre></section>
+<section class="source-file" id="file-30342d6578616d706c65732d7461626c652f66656174757265732f73746570732f77696b6970656469615f73746570732e7079" aria-labelledby="title-file-30342d6578616d706c65732d7461626c652f66656174757265732f73746570732f77696b6970656469615f73746570732e7079" hidden><header class="file-header"><h2 id="title-file-30342d6578616d706c65732d7461626c652f66656174757265732f73746570732f77696b6970656469615f73746570732e7079">04-examples-table/features/steps/wikipedia_steps.py</h2></header><pre><code>from behave import given, when, then
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
+LOCATIONS = {
+    "the Wikipedia home page": "https://en.wikipedia.org/wiki/Main_Page",
+}
+
+
+@given("I have opened {location}")
+def open_location(context, location):
+    # Set up the precondition: a named place, or any URL, opened in Chrome.
+    url = LOCATIONS.get(location, location)
+    context.browser = webdriver.Chrome()
+    context.add_cleanup(context.browser.quit)
+    context.wait = WebDriverWait(context.browser, 15)
+    context.browser.get(url)
+    # Verify it: the browser loaded a real page.
+    assert context.browser.title, "the page has no title"
+
+
+@when("I search for {invention}")
+def search_for_invention(context, invention):
+    start = context.browser.current_url
+    box = context.browser.find_element(By.NAME, "search")
+    box.send_keys(invention, Keys.ENTER)
+    # Verify the action was taken: we left the home page for an article.
+    context.wait.until(EC.url_changes(start))
+    heading = context.browser.find_element(By.ID, "firstHeading").text
+    assert not heading.startswith("Search results"), heading
+
+
+@then("the page text contains {inventor}")
+def page_text_contains_inventor(context, inventor):
+    text = context.browser.find_element(By.TAG_NAME, "body").text
+    assert inventor in text
+</code></pre></section>
+<section class="source-file" id="file-30352d6261636b67726f756e642f66656174757265732f696e76656e746f72732e66656174757265" aria-labelledby="title-file-30352d6261636b67726f756e642f66656174757265732f696e76656e746f72732e66656174757265" hidden><header class="file-header"><h2 id="title-file-30352d6261636b67726f756e642f66656174757265732f696e76656e746f72732e66656174757265">05-background/features/inventors.feature</h2></header><pre><code>Feature: Inventors on Wikipedia
+
+  Background:
+    Given I have opened the Wikipedia home page
+
+  Scenario Outline: An invention's page names its inventor
+    When I search for &lt;invention&gt;
+    Then the page text contains &lt;inventor&gt;
+
+    Examples:
+      | invention      | inventor  |
+      | Light Bulb     | Edison    |
+      | Helicopter     | Sikorsky  |
+      | Telephone      | Bell      |
+      | Airplane       | Wright    |
+      | Printing Press | Gutenberg |
+      | Dynamite       | Nobel     |
+      | Steam Engine   | Watt      |
+      | Radio          | Marconi   |
+      | Phonograph     | Edison    |
+      | Telegraphy     | Morse     |
+
+  Scenario Outline: An inventor's page names their invention
+    When I search for &lt;inventor&gt;
+    Then the page text contains &lt;invention&gt;
+
+    Examples:
+      | inventor              | invention      |
+      | Thomas Edison         | phonograph     |
+      | Igor Sikorsky         | helicopter     |
+      | Alexander Graham Bell | telephone      |
+      | Johannes Gutenberg    | printing press |
+      | Alfred Nobel          | dynamite       |
+</code></pre></section>
+<section class="source-file" id="file-30352d6261636b67726f756e642f66656174757265732f73746570732f77696b6970656469615f73746570732e7079" aria-labelledby="title-file-30352d6261636b67726f756e642f66656174757265732f73746570732f77696b6970656469615f73746570732e7079" hidden><header class="file-header"><h2 id="title-file-30352d6261636b67726f756e642f66656174757265732f73746570732f77696b6970656469615f73746570732e7079">05-background/features/steps/wikipedia_steps.py</h2></header><pre><code>from behave import given, when, then
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
+LOCATIONS = {
+    "the Wikipedia home page": "https://en.wikipedia.org/wiki/Main_Page",
+}
+
+
+@given("I have opened {location}")
+def open_location(context, location):
+    url = LOCATIONS.get(location, location)
+    context.browser = webdriver.Chrome()
+    context.add_cleanup(context.browser.quit)
+    context.wait = WebDriverWait(context.browser, 15)
+    context.browser.get(url)
+    assert context.browser.title, "the page has no title"
+
+
+@when("I search for {subject}")
+def search_for(context, subject):
+    start = context.browser.current_url
+    box = context.browser.find_element(By.NAME, "search")
+    box.send_keys(subject, Keys.ENTER)
+    context.wait.until(EC.url_changes(start))
+    heading = context.browser.find_element(By.ID, "firstHeading").text
+    assert not heading.startswith("Search results"), heading
+
+
+@then("the page text contains {text}")
+def page_text_contains(context, text):
+    page = context.browser.find_element(By.TAG_NAME, "body").text
+    assert text in page
+</code></pre></section>
+<section class="source-file" id="file-30362d686f6f6b732f66656174757265732f656e7669726f6e6d656e742e7079" aria-labelledby="title-file-30362d686f6f6b732f66656174757265732f656e7669726f6e6d656e742e7079" hidden><header class="file-header"><h2 id="title-file-30362d686f6f6b732f66656174757265732f656e7669726f6e6d656e742e7079">06-hooks/features/environment.py</h2></header><pre><code>import os
+import re
+
+from selenium import webdriver
+from selenium.webdriver.support.ui import WebDriverWait
+
+
+def before_all(context):
+    # Once per run: start one browser for every scenario to share.
+    context.browser = webdriver.Chrome()
+    context.wait = WebDriverWait(context.browser, 15)
+
+
+def before_scenario(context, scenario):
+    # Once per scenario: reset what a scenario could leave behind.
+    context.browser.delete_all_cookies()
+
+
+def after_scenario(context, scenario):
+    # Teardown can look at the outcome. Keep a picture of failures.
+    if scenario.status == "failed":
+        name = re.sub(r"\W+", "-", scenario.name).strip("-").lower()
+        os.makedirs("screenshots", exist_ok=True)
+        context.browser.save_screenshot(f"screenshots/{name}.png")
+
+
+def after_all(context):
+    context.browser.quit()
+</code></pre></section>
+<section class="source-file" id="file-30362d686f6f6b732f66656174757265732f696e76656e746f72732e66656174757265" aria-labelledby="title-file-30362d686f6f6b732f66656174757265732f696e76656e746f72732e66656174757265" hidden><header class="file-header"><h2 id="title-file-30362d686f6f6b732f66656174757265732f696e76656e746f72732e66656174757265">06-hooks/features/inventors.feature</h2></header><pre><code>Feature: Inventors on Wikipedia
+
+  Background:
+    Given I have opened the Wikipedia home page
+
+  Scenario Outline: An invention's page names its inventor
+    When I search for &lt;invention&gt;
+    Then the page text contains &lt;inventor&gt;
+
+    Examples:
+      | invention      | inventor  |
+      | Light Bulb     | Edison    |
+      | Helicopter     | Sikorsky  |
+      | Telephone      | Bell      |
+      | Airplane       | Wright    |
+      | Printing Press | Gutenberg |
+      | Dynamite       | Nobel     |
+      | Steam Engine   | Watt      |
+      | Radio          | Marconi   |
+      | Phonograph     | Edison    |
+      | Telegraphy     | Morse     |
+
+  Scenario Outline: An inventor's page names their invention
+    When I search for &lt;inventor&gt;
+    Then the page text contains &lt;invention&gt;
+
+    Examples:
+      | inventor              | invention      |
+      | Thomas Edison         | phonograph     |
+      | Igor Sikorsky         | helicopter     |
+      | Alexander Graham Bell | telephone      |
+      | Johannes Gutenberg    | printing press |
+      | Alfred Nobel          | dynamite       |
+</code></pre></section>
+<section class="source-file" id="file-30362d686f6f6b732f66656174757265732f73746570732f77696b6970656469615f73746570732e7079" aria-labelledby="title-file-30362d686f6f6b732f66656174757265732f73746570732f77696b6970656469615f73746570732e7079" hidden><header class="file-header"><h2 id="title-file-30362d686f6f6b732f66656174757265732f73746570732f77696b6970656469615f73746570732e7079">06-hooks/features/steps/wikipedia_steps.py</h2></header><pre><code>from behave import given, when, then
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support import expected_conditions as EC
+
+LOCATIONS = {
+    "the Wikipedia home page": "https://en.wikipedia.org/wiki/Main_Page",
+}
+
+
+@given("I have opened {location}")
+def open_location(context, location):
+    url = LOCATIONS.get(location, location)
+    context.browser.get(url)
+    assert context.browser.title, "the page has no title"
+
+
+@when("I search for {subject}")
+def search_for(context, subject):
+    start = context.browser.current_url
+    box = context.browser.find_element(By.NAME, "search")
+    box.send_keys(subject, Keys.ENTER)
+    context.wait.until(EC.url_changes(start))
+    heading = context.browser.find_element(By.ID, "firstHeading").text
+    assert not heading.startswith("Search results"), heading
+
+
+@then("the page text contains {text}")
+def page_text_contains(context, text):
+    page = context.browser.find_element(By.TAG_NAME, "body").text
+    assert text in page
+</code></pre></section>
+<section class="source-file" id="file-30372d73707265616473686565742d7061727365722f66656174757265732f63656c6c732e7079" aria-labelledby="title-file-30372d73707265616473686565742d7061727365722f66656174757265732f63656c6c732e7079" hidden><header class="file-header"><h2 id="title-file-30372d73707265616473686565742d7061727365722f66656174757265732f63656c6c732e7079">07-spreadsheet-parser/features/cells.py</h2></header><pre><code>"""Turn the text typed into a spreadsheet cell into a number."""
+
+
+def parse(text):
+    sign = 1.0
+    if text.startswith(("-", "+")):
+        if text[0] == "-":
+            sign = -1.0
+        text = text[1:]
+    parts = text.split(".")
+    if (len(parts) &gt; 2 or
+            not any(parts) or
+            any(c &lt; "0" or c &gt; "9" for part in parts for c in part)):
+        raise ValueError("Expected digits with an optional decimal point")
+    value = 0.0
+    place = 0.1
+    after_point = False
+    for digit in text:
+        if digit == ".":
+            after_point = True
+        elif after_point:
+            value += (ord(digit) - ord("0")) * place
+            place /= 10
+        else:
+            value = value * 10 + ord(digit) - ord("0")
+    return sign * value
+</code></pre></section>
+<section class="source-file" id="file-30372d73707265616473686565742d7061727365722f66656174757265732f6e756d626572735f696e5f63656c6c732e66656174757265" aria-labelledby="title-file-30372d73707265616473686565742d7061727365722f66656174757265732f6e756d626572735f696e5f63656c6c732e66656174757265" hidden><header class="file-header"><h2 id="title-file-30372d73707265616473686565742d7061727365722f66656174757265732f6e756d626572735f696e5f63656c6c732e66656174757265">07-spreadsheet-parser/features/numbers_in_cells.feature</h2></header><pre><code>Feature: Numbers typed into spreadsheet cells
+  My spreadsheet lives or dies on reading what I type the way I mean it.
+  A cell that holds a number must hold exactly that number, and a cell
+  that does not hold a number must say so instead of guessing.
+
+  Scenario Outline: A cell that holds a number
+    When I type "&lt;entry&gt;" into a cell
+    Then the cell holds the number &lt;number&gt;
+
+    Examples: Whole numbers
+      | entry | number |
+      | 7     | 7      |
+      | 0     | 0      |
+      | 42    | 42     |
+      | 105   | 105    |
+      | 007   | 7      |
+
+    Examples: Decimals
+      | entry | number |
+      | 12.5  | 12.5   |
+      | 0.25  | 0.25   |
+      | 10.02 | 10.02  |
+      | .5    | 0.5    |
+      | 5.    | 5      |
+
+    Examples: Signs
+      | entry | number |
+      | -12.5 | -12.5  |
+      | +7    | 7      |
+      | -0.25 | -0.25  |
+
+  Scenario Outline: A cell that does not hold a number
+    When I type "&lt;entry&gt;" into a cell
+    Then the cell is rejected as not a number
+
+    Examples: Not numbers
+      | entry |
+      | abc   |
+      | 12x   |
+      | 1.2.3 |
+      | +     |
+      | -     |
+      | .     |
+      | --7   |
+      | 1e3   |
+</code></pre></section>
+<section class="source-file" id="file-30372d73707265616473686565742d7061727365722f66656174757265732f73746570732f63656c6c5f73746570732e7079" aria-labelledby="title-file-30372d73707265616473686565742d7061727365722f66656174757265732f73746570732f63656c6c5f73746570732e7079" hidden><header class="file-header"><h2 id="title-file-30372d73707265616473686565742d7061727365722f66656174757265732f73746570732f63656c6c5f73746570732e7079">07-spreadsheet-parser/features/steps/cell_steps.py</h2></header><pre><code>import math
+
+from behave import when, then
+
+from cells import parse
+
+
+@when('I type "{entry}" into a cell')
+def type_into_cell(context, entry):
+    # Do the action and keep what happened: a value or an error.
+    context.entry = entry
+    context.value = None
+    context.error = None
+    try:
+        context.value = parse(entry)
+    except ValueError as error:
+        context.error = error
+
+
+@then("the cell holds the number {number}")
+def cell_holds_number(context, number):
+    assert context.error is None, f"{context.entry!r} was rejected"
+    expected = float(number)
+    assert math.isclose(context.value, expected, rel_tol=1e-12, abs_tol=1e-12), \
+        f"{context.entry!r} gave {context.value!r}, expected {expected!r}"
+
+
+@then("the cell is rejected as not a number")
+def cell_is_rejected(context):
+    assert context.error is not None, \
+        f"{context.entry!r} was accepted as {context.value!r}"
+</code></pre></section>
+<section class="source-file" id="file-726571756972656d656e74732e747874" aria-labelledby="title-file-726571756972656d656e74732e747874" hidden><header class="file-header"><h2 id="title-file-726571756972656d656e74732e747874">requirements.txt</h2></header><pre><code>requests&gt;=2.32,&lt;3
+beautifulsoup4&gt;=4.12,&lt;5
+selenium&gt;=4.6,&lt;5
+pytest&gt;=8,&lt;10
+behave&gt;=1.2.6,&lt;2
+</code></pre></section>
+<section class="source-file" id="file-746573745f6c696768745f62756c622e7079" aria-labelledby="title-file-746573745f6c696768745f62756c622e7079" hidden><header class="file-header"><h2 id="title-file-746573745f6c696768745f62756c622e7079">test_light_bulb.py</h2></header><pre><code>from wiki import page_text
+
+
+def test_light_bulb_page_mentions_edison():
+    assert "Edison" in page_text("Incandescent_light_bulb")
+</code></pre></section>
+<section class="source-file" id="file-746573745f6c696768745f62756c625f7365617263682e7079" aria-labelledby="title-file-746573745f6c696768745f62756c625f7365617263682e7079" hidden><header class="file-header"><h2 id="title-file-746573745f6c696768745f62756c625f7365617263682e7079">test_light_bulb_search.py</h2></header><pre><code>from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
+
+def test_light_bulb_mentions_edison():
+    browser = webdriver.Chrome()
+    try:
+        browser.get("https://en.wikipedia.org/wiki/Main_Page")
+        wait = WebDriverWait(browser, 15)
+        search = wait.until(EC.element_to_be_clickable((By.NAME, "search")))
+        start = browser.current_url
+        search.send_keys("light bulb", Keys.ENTER)
+        wait.until(EC.url_changes(start))
+        wait.until(EC.visibility_of_element_located((By.ID, "firstHeading")))
+        text = browser.find_element(By.TAG_NAME, "body").text
+        assert "Edison" in text
+    finally:
+        browser.quit()
+
+
+def main():
+    test_light_bulb_mentions_edison()
+
+
+if __name__ == "__main__":
+    main()
+</code></pre></section>
+<section class="source-file" id="file-77696b692e7079" aria-labelledby="title-file-77696b692e7079" hidden><header class="file-header"><h2 id="title-file-77696b692e7079">wiki.py</h2></header><pre><code>"""Fetch the text of a Wikipedia page."""
+import requests
+
+HEADERS = {"User-Agent": "SoftwareEngineeringCourse/1.0 (educational example)"}
+
+
+def page_text(title):
+    url = "https://en.wikipedia.org/wiki/" + title
+    response = requests.get(url, headers=HEADERS, timeout=15)
+    response.raise_for_status()
+    return response.text
+</code></pre></section></div>
+</div>
+<p>The files are available in the <a href="https://github.com/kentcs/software-engineering/tree/main/chapter-05-testing-as-requirements-definition/code">course repository</a>.</p>
+</main>
+<script>
+const links = [...document.querySelectorAll('nav a')];
+const panels = [...document.querySelectorAll('.source-file')];
+function showFile() {
+ const selected = links.find(link => link.hash === location.hash) || links[0];
+ if (!selected) return;
+ for (const link of links) link === selected ? link.setAttribute('aria-current', 'true') : link.removeAttribute('aria-current');
+ for (const panel of panels) panel.hidden = '#' + panel.id !== selected.hash;
+}
+window.addEventListener('hashchange', showFile);
+showFile();
+</script>
+</body>
+</html>
