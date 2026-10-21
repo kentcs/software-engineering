@@ -1,0 +1,52 @@
+name: WebCalc tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: WebCalc / ${{ matrix.layer }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        layer: [unit, simulated-gui, browser]
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirements-test.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements-test.txt
+      - name: Test calculator logic
+        if: matrix.layer == 'unit'
+        run: python -m pytest -v test_calculator.py --junitxml=test-results/unit.xml
+      - name: Test simulated GUI
+        if: matrix.layer == 'simulated-gui'
+        run: python -m pytest -v test_main.py --junitxml=test-results/simulated-gui.xml
+      - name: Test in headless Chrome
+        if: matrix.layer == 'browser'
+        run: |
+          google-chrome --version
+          python run_browser_tests.py --junit --junit-directory test-results
+      - name: Save test reports and browser diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: webcalc-${{ matrix.layer }}
+          path: |
+            test-results/
+            browser-test-artifacts/
+          if-no-files-found: ignore
+          retention-days: 7

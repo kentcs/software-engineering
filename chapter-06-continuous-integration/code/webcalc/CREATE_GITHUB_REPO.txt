@@ -1,0 +1,122 @@
+Create the webcalc exercise repository
+
+Prerequisites: a GitHub account, Git, Python 3.12, and Chrome.
+Python 3.12 matches the hosted Actions jobs so local and hosted runs use the
+same Python minor version; it is not a claim that newer Python cannot work. The command-line
+route also uses GitHub CLI (gh). Commands below run in a terminal.
+
+1. Extract the supplied exercise
+
+Extract webcalc.zip into a new working location. Open a terminal in the
+extracted webcalc folder. The archive includes the hidden .github directory
+and .gitignore, along with the application and all three testing methods.
+
+Do not initialize Git in the containing downloads folder. The repository root
+must be the extracted webcalc folder containing main.py and .github/.
+
+The archive excludes Git history, virtual environments, caches, logs, generated
+test reports, and files whose names begin with .private. Start with a fresh
+extraction rather than merging it with an older exercise directory.
+
+2. Run the tests locally
+
+On macOS or Linux:
+    python3.12 -m venv .venv
+    source .venv/bin/activate
+
+On Windows PowerShell:
+    py -3.12 -m venv .venv
+    .venv\Scripts\Activate.ps1
+
+Then, on either platform:
+    python -m pip install -r requirements-test.txt
+    python -m pytest -v test_calculator.py test_main.py
+    python run_browser_tests.py
+
+Expected: 39 pytest tests pass, followed by 12 browser scenarios / 51 steps.
+Stop any app using port 8080 before running run_browser_tests.py. That runner
+starts and stops its own WebCalc process.
+
+3. Initialize Git and inspect what will be uploaded
+
+    git init -b main
+    git add .
+    git status --short
+
+Check that the app, tests, feature files, and workflow are staged. Virtual
+environments, caches, test artifacts, and private files must not be staged.
+
+    git commit -m "Add WebCalc with three layers of automated tests"
+
+4. Create the GitHub repository and push (GitHub CLI route)
+
+    gh auth login
+    gh repo create webcalc --private --source=. --remote=origin --push
+
+This creates webcalc under the account authenticated with gh and pushes main.
+Use --public instead of --private when a public class repository is intended.
+If that account already owns a repo named webcalc, inspect it before proceeding;
+do not overwrite it or force-push. Use the website route below to connect to an
+intentionally empty repository, or resolve the existing name first.
+
+Alternative: create the repository on GitHub's website
+
+Choose New repository, name it webcalc, and select its visibility. Do not add a
+README, .gitignore, or license there; the local repository already has its first
+commit. Copy the new repository's HTTPS URL, then run (replace YOUR_USERNAME):
+
+    git remote add origin https://github.com/YOUR_USERNAME/webcalc.git
+    git push -u origin main
+
+Use either this route or the CLI creation route, not both.
+
+5. Inspect the automated run
+
+Open the repository's Actions tab, select WebCalc tests, and open the run for
+the initial push. All three jobs should become green:
+    WebCalc / unit
+    WebCalc / simulated-gui
+    WebCalc / browser
+
+Each job installs its own Python dependencies on a fresh Ubuntu runner. The
+browser job starts WebCalc and uses headless Chrome. No deployment or personal
+computer running the app is required. Reports and browser logs are attached to
+the workflow run as artifacts. Actions must be allowed in repository settings.
+
+Optional CLI commands:
+    gh run list --workflow webcalc-tests.yml
+    gh run watch RUN_ID --exit-status
+
+Replace RUN_ID with the ID from the list. To start another run manually:
+    gh workflow run webcalc-tests.yml
+
+6. Make a failing run, then repair it
+
+In test_calculator.py, find test_addition and change its expected display from
+'5' to '6'. This deliberately incorrect expectation demonstrates a failed check.
+
+    python -m pytest -v test_calculator.py -k test_addition
+
+Expected: one failing test locally. Now push that known failure:
+
+    git add test_calculator.py
+    git commit -m "Demonstrate a failing addition check"
+    git push
+
+Expected: unit fails; simulated-gui and browser still pass. Open the unit job
+and read the failed assertion. Restore '5', then:
+
+    git add test_calculator.py
+    git commit -m "Restore the correct addition expectation"
+    git push
+
+Expected: all three jobs pass again. The workflow runs tests on each pushed
+revision. It does not deploy the application or approve a pull request.
+
+References
+GitHub CLI, gh repo create:
+https://cli.github.com/manual/gh_repo_create
+GitHub, Creating a new repository:
+https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-new-repository
+GitHub, Using workflow run logs:
+https://docs.github.com/en/actions/how-tos/monitor-workflows/using-workflow-run-logs

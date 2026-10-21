@@ -1,0 +1,5 @@
+# Versions used for the WebCalc continuous integration example.
+nicegui==3.8.0
+pytest==9.0.2
+behave==1.3.3
+selenium==4.40.0

@@ -1,0 +1,1141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Code: Continuous Integration</title>
+<style>
+* { box-sizing: border-box; }
+body { margin: 0; color: #172b36; background: #f5f7f9; font: 16px/1.5 system-ui, sans-serif; }
+main { max-width: 1600px; margin: auto; padding: 24px; }
+a { color: #12647a; }
+h1 { font-size: 26px; margin: 8px 0 20px; }
+.browser { display: grid; grid-template-columns: 270px minmax(0, 1fr); height: calc(100vh - 140px); min-height: 400px; border: 1px solid #ccd6dc; border-radius: 8px; overflow: hidden; background: white; }
+nav { overflow: auto; background: #edf2f5; border-right: 1px solid #ccd6dc; padding: 12px; }
+nav ul { list-style: none; padding: 0; margin: 0; }
+nav a { display: block; padding: 9px 10px; text-decoration: none; border-radius: 4px; overflow-wrap: anywhere; font: 14px/1.5 ui-monospace, monospace; }
+nav a:hover { background: #dfe9ed; }
+nav a[aria-current="true"] { background: #155e75; color: white; }
+a:focus-visible { outline: 3px solid #d18a00; outline-offset: -3px; }
+.viewer { min-width: 0; min-height: 0; }
+.source-file { height: 100%; display: flex; flex-direction: column; }
+.source-file[hidden] { display: none; }
+.file-header { padding: 12px 18px; border-bottom: 1px solid #ccd6dc; }
+h2 { font: 600 16px/1.5 ui-monospace, monospace; margin: 0; overflow-wrap: anywhere; }
+pre { flex: 1; min-height: 0; overflow: auto; margin: 0; padding: 20px; background: #fafbfc; tab-size: 4; }
+code { font: 14px/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+.binary { padding: 20px; }
+@media(max-width: 700px) { main { padding: 12px; } h1 { font-size: 21px; } .browser { grid-template-columns: 1fr; grid-template-rows: 160px minmax(0, 1fr); height: calc(100dvh - 130px); min-height: 480px; } nav { border-right: 0; border-bottom: 1px solid #ccd6dc; } }
+</style>
+</head>
+<body>
+<main>
+<a href="../index.html">Back to chapter</a>
+<h1>Continuous Integration: Code</h1>
+<div class="browser">
+<nav aria-label="Files"><ul><li><a href="#file-77656263616c632f2e6769746875622f776f726b666c6f77732f77656263616c632d74657374732e796d6c">webcalc/.github/workflows/webcalc-tests.yml</a></li>
+<li><a href="#file-77656263616c632f2e67697469676e6f7265">webcalc/.gitignore</a></li>
+<li><a href="#file-77656263616c632f434f4e54494e554f55535f494e544547524154494f4e2e747874">webcalc/CONTINUOUS_INTEGRATION.txt</a></li>
+<li><a href="#file-77656263616c632f4352454154455f4749544855425f5245504f2e747874">webcalc/CREATE_GITHUB_REPO.txt</a></li>
+<li><a href="#file-77656263616c632f52554e5f42524f575345525f54455354532e747874">webcalc/RUN_BROWSER_TESTS.txt</a></li>
+<li><a href="#file-77656263616c632f63616c63756c61746f722e7079">webcalc/calculator.py</a></li>
+<li><a href="#file-77656263616c632f66656174757265732f63616c63756c61746f722e66656174757265">webcalc/features/calculator.feature</a></li>
+<li><a href="#file-77656263616c632f66656174757265732f656e7669726f6e6d656e742e7079">webcalc/features/environment.py</a></li>
+<li><a href="#file-77656263616c632f66656174757265732f73746570732f63616c63756c61746f725f73746570732e7079">webcalc/features/steps/calculator_steps.py</a></li>
+<li><a href="#file-77656263616c632f6d61696e2e7079">webcalc/main.py</a></li>
+<li><a href="#file-77656263616c632f726571756972656d656e74732d746573742e747874">webcalc/requirements-test.txt</a></li>
+<li><a href="#file-77656263616c632f72756e5f62726f777365725f74657374732e7079">webcalc/run_browser_tests.py</a></li>
+<li><a href="#file-77656263616c632f746573745f63616c63756c61746f722e7079">webcalc/test_calculator.py</a></li>
+<li><a href="#file-77656263616c632f746573745f6d61696e2e7079">webcalc/test_main.py</a></li>
+<li><a href="#file-77656263616c632e7a6970">webcalc.zip</a></li></ul></nav>
+<div class="viewer"><section class="source-file" id="file-77656263616c632f2e6769746875622f776f726b666c6f77732f77656263616c632d74657374732e796d6c" aria-labelledby="title-file-77656263616c632f2e6769746875622f776f726b666c6f77732f77656263616c632d74657374732e796d6c"><header class="file-header"><h2 id="title-file-77656263616c632f2e6769746875622f776f726b666c6f77732f77656263616c632d74657374732e796d6c">webcalc/.github/workflows/webcalc-tests.yml</h2></header><pre><code>name: WebCalc tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: WebCalc / ${{ matrix.layer }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        layer: [unit, simulated-gui, browser]
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirements-test.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements-test.txt
+      - name: Test calculator logic
+        if: matrix.layer == 'unit'
+        run: python -m pytest -v test_calculator.py --junitxml=test-results/unit.xml
+      - name: Test simulated GUI
+        if: matrix.layer == 'simulated-gui'
+        run: python -m pytest -v test_main.py --junitxml=test-results/simulated-gui.xml
+      - name: Test in headless Chrome
+        if: matrix.layer == 'browser'
+        run: |
+          google-chrome --version
+          python run_browser_tests.py --junit --junit-directory test-results
+      - name: Save test reports and browser diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: webcalc-${{ matrix.layer }}
+          path: |
+            test-results/
+            browser-test-artifacts/
+          if-no-files-found: ignore
+          retention-days: 7
+</code></pre></section>
+<section class="source-file" id="file-77656263616c632f2e67697469676e6f7265" aria-labelledby="title-file-77656263616c632f2e67697469676e6f7265" hidden><header class="file-header"><h2 id="title-file-77656263616c632f2e67697469676e6f7265">webcalc/.gitignore</h2></header><pre><code>__pycache__/
+.pytest_cache/
+.venv/
+test-results/
+browser-test-artifacts/
+.private*
+</code></pre></section>
+<section class="source-file" id="file-77656263616c632f434f4e54494e554f55535f494e544547524154494f4e2e747874" aria-labelledby="title-file-77656263616c632f434f4e54494e554f55535f494e544547524154494f4e2e747874" hidden><header class="file-header"><h2 id="title-file-77656263616c632f434f4e54494e554f55535f494e544547524154494f4e2e747874">webcalc/CONTINUOUS_INTEGRATION.txt</h2></header><pre><code>WebCalc: the Continuous Integration example
+
+The standalone webcalc repository workflow is .github/workflows/webcalc-tests.yml.
+Copy this entire webcalc directory, including its hidden .github directory and
+.gitignore, into the repository used for the exercise. Do not upload the course
+repository as a whole.
+
+Every push or pull request starts three independent jobs. A failure in one does
+not prevent the others from reporting their results. The workflow can also be
+started with Run workflow on GitHub's Actions page.
+
+1. unit: pytest runs test_calculator.py against the Calculator class.
+2. simulated-gui: pytest runs test_main.py using NiceGUI's user simulation.
+3. browser: starts the app and runs behave through actual headless Chrome.
+
+Each job checks out the proposed code, sets up Python 3.12, and installs the
+versions in requirements-test.txt. No already-running development server is
+required. GitHub's Ubuntu runner includes Chrome; Selenium Manager supplies
+the matching driver. The jobs upload JUnit test reports. The browser job also
+uploads its app log and any failure screenshots, retained for seven days.
+
+Local commands, from this directory:
+    python3 -m pip install -r requirements-test.txt
+    python3 -m pytest -v test_calculator.py
+    python3 -m pytest -v test_main.py
+    python3 run_browser_tests.py
+
+The browser runner requires port 8080 to be free and stops the app on exit.
+For an app you have already started, use python3 -m behave -D headless=true.
+
+Expected results: 27 logic tests, 12 simulated GUI tests, and 12 browser
+scenarios containing 51 steps. A failed test gives a nonzero process exit code,
+which makes its Actions job fail. Passing these checks supplies evidence about
+these behaviors; it does not prove the app is correct for every input.
+
+Class exercise:
+Change the expected answer in test_addition from '5' to '6', commit, and push.
+The unit job should fail while the other two jobs pass. Inspect the failing
+assertion in Actions. Restore '5', commit, and push; all three jobs should pass.
+
+Repository creation and first push: see CREATE_GITHUB_REPO.txt.
+
+References:
+GitHub, Building and testing Python:
+https://docs.github.com/en/actions/tutorials/build-and-test-code/python
+GitHub, Workflow syntax:
+https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax
+</code></pre></section>
+<section class="source-file" id="file-77656263616c632f4352454154455f4749544855425f5245504f2e747874" aria-labelledby="title-file-77656263616c632f4352454154455f4749544855425f5245504f2e747874" hidden><header class="file-header"><h2 id="title-file-77656263616c632f4352454154455f4749544855425f5245504f2e747874">webcalc/CREATE_GITHUB_REPO.txt</h2></header><pre><code>Create the webcalc exercise repository
+
+Prerequisites: a GitHub account, Git, Python 3.12, and Chrome.
+Python 3.12 matches the hosted Actions jobs so local and hosted runs use the
+same Python minor version; it is not a claim that newer Python cannot work. The command-line
+route also uses GitHub CLI (gh). Commands below run in a terminal.
+
+1. Extract the supplied exercise
+
+Extract webcalc.zip into a new working location. Open a terminal in the
+extracted webcalc folder. The archive includes the hidden .github directory
+and .gitignore, along with the application and all three testing methods.
+
+Do not initialize Git in the containing downloads folder. The repository root
+must be the extracted webcalc folder containing main.py and .github/.
+
+The archive excludes Git history, virtual environments, caches, logs, generated
+test reports, and files whose names begin with .private. Start with a fresh
+extraction rather than merging it with an older exercise directory.
+
+2. Run the tests locally
+
+On macOS or Linux:
+    python3.12 -m venv .venv
+    source .venv/bin/activate
+
+On Windows PowerShell:
+    py -3.12 -m venv .venv
+    .venv\Scripts\Activate.ps1
+
+Then, on either platform:
+    python -m pip install -r requirements-test.txt
+    python -m pytest -v test_calculator.py test_main.py
+    python run_browser_tests.py
+
+Expected: 39 pytest tests pass, followed by 12 browser scenarios / 51 steps.
+Stop any app using port 8080 before running run_browser_tests.py. That runner
+starts and stops its own WebCalc process.
+
+3. Initialize Git and inspect what will be uploaded
+
+    git init -b main
+    git add .
+    git status --short
+
+Check that the app, tests, feature files, and workflow are staged. Virtual
+environments, caches, test artifacts, and private files must not be staged.
+
+    git commit -m "Add WebCalc with three layers of automated tests"
+
+4. Create the GitHub repository and push (GitHub CLI route)
+
+    gh auth login
+    gh repo create webcalc --private --source=. --remote=origin --push
+
+This creates webcalc under the account authenticated with gh and pushes main.
+Use --public instead of --private when a public class repository is intended.
+If that account already owns a repo named webcalc, inspect it before proceeding;
+do not overwrite it or force-push. Use the website route below to connect to an
+intentionally empty repository, or resolve the existing name first.
+
+Alternative: create the repository on GitHub's website
+
+Choose New repository, name it webcalc, and select its visibility. Do not add a
+README, .gitignore, or license there; the local repository already has its first
+commit. Copy the new repository's HTTPS URL, then run (replace YOUR_USERNAME):
+
+    git remote add origin https://github.com/YOUR_USERNAME/webcalc.git
+    git push -u origin main
+
+Use either this route or the CLI creation route, not both.
+
+5. Inspect the automated run
+
+Open the repository's Actions tab, select WebCalc tests, and open the run for
+the initial push. All three jobs should become green:
+    WebCalc / unit
+    WebCalc / simulated-gui
+    WebCalc / browser
+
+Each job installs its own Python dependencies on a fresh Ubuntu runner. The
+browser job starts WebCalc and uses headless Chrome. No deployment or personal
+computer running the app is required. Reports and browser logs are attached to
+the workflow run as artifacts. Actions must be allowed in repository settings.
+
+Optional CLI commands:
+    gh run list --workflow webcalc-tests.yml
+    gh run watch RUN_ID --exit-status
+
+Replace RUN_ID with the ID from the list. To start another run manually:
+    gh workflow run webcalc-tests.yml
+
+6. Make a failing run, then repair it
+
+In test_calculator.py, find test_addition and change its expected display from
+'5' to '6'. This deliberately incorrect expectation demonstrates a failed check.
+
+    python -m pytest -v test_calculator.py -k test_addition
+
+Expected: one failing test locally. Now push that known failure:
+
+    git add test_calculator.py
+    git commit -m "Demonstrate a failing addition check"
+    git push
+
+Expected: unit fails; simulated-gui and browser still pass. Open the unit job
+and read the failed assertion. Restore '5', then:
+
+    git add test_calculator.py
+    git commit -m "Restore the correct addition expectation"
+    git push
+
+Expected: all three jobs pass again. The workflow runs tests on each pushed
+revision. It does not deploy the application or approve a pull request.
+
+References
+GitHub CLI, gh repo create:
+https://cli.github.com/manual/gh_repo_create
+GitHub, Creating a new repository:
+https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-new-repository
+GitHub, Using workflow run logs:
+https://docs.github.com/en/actions/how-tos/monitor-workflows/using-workflow-run-logs
+</code></pre></section>
+<section class="source-file" id="file-77656263616c632f52554e5f42524f575345525f54455354532e747874" aria-labelledby="title-file-77656263616c632f52554e5f42524f575345525f54455354532e747874" hidden><header class="file-header"><h2 id="title-file-77656263616c632f52554e5f42524f575345525f54455354532e747874">webcalc/RUN_BROWSER_TESTS.txt</h2></header><pre><code>WebCalc browser tests
+
+Run these commands from this webcalc directory. Install Chrome first.
+The Python packages needed are nicegui, behave, and selenium:
+    python3 -m pip install nicegui behave selenium
+
+1. Start the app in a terminal and leave it running:
+    python3 main.py
+
+2. In another terminal, run all browser scenarios with visible Chrome:
+    python3 -m behave
+
+   Or run Chrome headlessly:
+    python3 -m behave -D headless=true
+
+   To test an app running elsewhere:
+    python3 -m behave -D base_url=http://localhost:8080 -D headless=true
+
+Expected result: 12 scenarios pass. Each scenario gets a fresh Chrome session.
+Selenium Manager manages ChromeDriver; initial setup may require internet access.
+On Windows, use py instead of python3 if that is your Python launcher.
+
+The feature file is features/calculator.feature. Button sequences use spaces
+between buttons and ASCII * / - for the displayed multiplication, division,
+and subtraction buttons. Keyboard scenarios send real browser key events.
+Tests wait for the page, websocket connection, and exact expected display.
+Failed scenarios save screenshots under browser-test-artifacts/.
+
+These tests exercise the rendered app through Selenium WebDriver. They do not
+import Calculator or call NiceGUI's simulated-user layer. The earlier tests
+remain independently runnable:
+    python3 -m pytest -v test_calculator.py test_main.py
+
+No changes to the application code are required.
+</code></pre></section>
+<section class="source-file" id="file-77656263616c632f63616c63756c61746f722e7079" aria-labelledby="title-file-77656263616c632f63616c63756c61746f722e7079" hidden><header class="file-header"><h2 id="title-file-77656263616c632f63616c63756c61746f722e7079">webcalc/calculator.py</h2></header><pre><code>"""Four-function calculator logic, independent of the UI."""
+
+OPERATORS = {
+    '+': lambda a, b: a + b,
+    '-': lambda a, b: a - b,
+    '*': lambda a, b: a * b,
+    '/': lambda a, b: a / b,
+}
+
+
+class Calculator:
+    def __init__(self):
+        self.clear()
+
+    def clear(self):
+        self.display = '0'
+        self.accumulator = None
+        self.operator = None
+        self.fresh = True  # next digit starts a new number
+
+    def clear_entry(self):
+        if self.display == 'Error':
+            self.clear()
+            return
+        self.display = '0'
+        self.fresh = True
+
+    def digit(self, d):
+        if self.display == 'Error':
+            self.clear()
+        if self.fresh:
+            self.display = d
+            self.fresh = False
+        elif len(self.display.replace('-', '').replace('.', '')) &lt; 12:
+            self.display = d if self.display == '0' else self.display + d
+
+    def decimal(self):
+        if self.display == 'Error':
+            self.clear()
+        if self.fresh:
+            self.display = '0.'
+            self.fresh = False
+        elif '.' not in self.display:
+            self.display += '.'
+
+    def negate(self):
+        if self.display in ('0', 'Error'):
+            return
+        self.display = self.display[1:] if self.display.startswith('-') else '-' + self.display
+
+    def operate(self, op):
+        if self.display == 'Error':
+            return
+        if self.operator and not self.fresh:
+            self._evaluate()
+        else:
+            self.accumulator = float(self.display)
+        self.operator = op
+        self.fresh = True
+
+    def equals(self):
+        if self.display == 'Error' or not self.operator:
+            return
+        self._evaluate()
+        self.operator = None
+        self.fresh = True
+
+    def _evaluate(self):
+        try:
+            result = OPERATORS[self.operator](self.accumulator, float(self.display))
+        except ZeroDivisionError:
+            self.display = 'Error'
+            self.accumulator = None
+            self.operator = None
+            return
+        self.accumulator = result
+        self.display = self._format(result)
+
+    @staticmethod
+    def _format(value):
+        text = f'{value:.10g}'
+        return text
+</code></pre></section>
+<section class="source-file" id="file-77656263616c632f66656174757265732f63616c63756c61746f722e66656174757265" aria-labelledby="title-file-77656263616c632f66656174757265732f63616c63756c61746f722e66656174757265" hidden><header class="file-header"><h2 id="title-file-77656263616c632f66656174757265732f63616c63756c61746f722e66656174757265">webcalc/features/calculator.feature</h2></header><pre><code>Feature: Use the calculator in a real browser
+  The calculator should accept button clicks and keyboard input,
+  show the result, and let me recover from an error.
+
+  Background:
+    Given I open the calculator
+
+  Scenario Outline: Calculate with the four operators
+    When I click the buttons "&lt;buttons&gt;"
+    Then the display is "&lt;result&gt;"
+
+    Examples:
+      | buttons | result |
+      | 2 + 3 = | 5      |
+      | 3 - 8 = | -5     |
+      | 6 * 7 = | 42     |
+      | 7 / 2 = | 3.5    |
+
+  Scenario: Enter decimal numbers
+    When I click the buttons ". 2 5 + . 5 ="
+    Then the display is "0.75"
+
+  Scenario: Change the sign
+    When I click the buttons "1 2 +/-"
+    Then the display is "-12"
+    When I click the buttons "+/-"
+    Then the display is "12"
+
+  Scenario: Clear the entire calculation
+    When I click the buttons "9 + 4 C"
+    Then the display is "0"
+    When I click the buttons "2 ="
+    Then the display is "2"
+
+  Scenario: Replace only the current entry
+    When I click the buttons "9 + 4 5 CE"
+    Then the display is "0"
+    When I click the buttons "2 ="
+    Then the display is "11"
+
+  Scenario: Recover from division by zero
+    When I click the buttons "8 / 0 ="
+    Then the display is "Error"
+    When I click the buttons "7 + 2 ="
+    Then the display is "9"
+
+  Scenario: Evaluate each operation as it is entered
+    When I click the buttons "2 + 3 *"
+    Then the display is "5"
+    When I click the buttons "4 ="
+    Then the display is "20"
+
+  Scenario: Enter a calculation on the keyboard
+    When I type "12+3"
+    And I press the "Enter" key
+    Then the display is "15"
+    When I press the "Escape" key
+    Then the display is "0"
+
+  Scenario: Start a new entry after a result
+    When I click the buttons "2 + 3 ="
+    Then the display is "5"
+    When I click the buttons "7"
+    Then the display is "7"
+</code></pre></section>
+<section class="source-file" id="file-77656263616c632f66656174757265732f656e7669726f6e6d656e742e7079" aria-labelledby="title-file-77656263616c632f66656174757265732f656e7669726f6e6d656e742e7079" hidden><header class="file-header"><h2 id="title-file-77656263616c632f66656174757265732f656e7669726f6e6d656e742e7079">webcalc/features/environment.py</h2></header><pre><code>"""Real Chrome setup for behave; the web app runs in a separate process."""
+
+from pathlib import Path
+import re
+from urllib.error import URLError
+from urllib.request import urlopen
+
+from selenium import webdriver
+from selenium.webdriver.support.ui import WebDriverWait
+
+
+def before_all(context):
+    context.base_url = context.config.userdata.get('base_url', 'http://localhost:8080')
+    headless = str(context.config.userdata.get('headless', 'false')).lower()
+    if headless not in ('true', 'false'):
+        raise ValueError('Use -D headless=true or -D headless=false')
+    context.headless = headless == 'true'
+    try:
+        with urlopen(context.base_url, timeout=5) as response:
+            if response.status != 200:
+                raise RuntimeError(f'App returned HTTP {response.status}')
+    except (URLError, TimeoutError) as error:
+        raise RuntimeError(
+            f'Cannot reach {context.base_url}. Start the app with python3 main.py '
+            'in another terminal, or supply -D base_url=http://host:port'
+        ) from error
+
+
+def before_scenario(context, scenario):
+    options = webdriver.ChromeOptions()
+    if context.headless:
+        options.add_argument('--headless=new')
+    options.add_argument('--window-size=1100,900')
+    # Selenium Manager locates or obtains the driver for installed Chrome.
+    context.browser = webdriver.Chrome(options=options)
+    context.add_cleanup(context.browser.quit)
+    context.browser.set_page_load_timeout(20)
+    context.wait = WebDriverWait(context.browser, 10)
+
+
+def after_scenario(context, scenario):
+    if scenario.status == 'failed' and hasattr(context, 'browser'):
+        folder = Path('browser-test-artifacts')
+        folder.mkdir(exist_ok=True)
+        name = re.sub(r'[^a-zA-Z0-9_-]+', '-', scenario.name).strip('-')
+        try:
+            context.browser.save_screenshot(str(folder / f'{name}.png'))
+        except Exception as error:
+            print(f'Could not capture failure screenshot: {error}')
+</code></pre></section>
+<section class="source-file" id="file-77656263616c632f66656174757265732f73746570732f63616c63756c61746f725f73746570732e7079" aria-labelledby="title-file-77656263616c632f66656174757265732f73746570732f63616c63756c61746f725f73746570732e7079" hidden><header class="file-header"><h2 id="title-file-77656263616c632f66656174757265732f73746570732f63616c63756c61746f725f73746570732e7079">webcalc/features/steps/calculator_steps.py</h2></header><pre><code>"""Interact with the rendered app; never import the calculator implementation."""
+
+from behave import given, when, then
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support import expected_conditions as EC
+
+DISPLAY = (By.CSS_SELECTOR, '.font-mono')
+SYMBOLS = {'/': '\u00f7', '*': '\u00d7', '-': '\u2212'}
+
+
+@given('I open the calculator')
+def open_calculator(context):
+    context.browser.get(context.base_url)
+    context.wait.until(EC.visibility_of_element_located(DISPLAY))
+    # Wait for NiceGUI's websocket before sending events to its Python handlers.
+    context.wait.until(lambda browser: browser.execute_script(
+        'return typeof socket !== "undefined" &amp;&amp; socket.connected === true;'))
+    assert context.browser.find_element(*DISPLAY).text == '0'
+
+
+@when('I click the buttons "{buttons}"')
+def click_buttons(context, buttons):
+    for token in buttons.split():
+        label = SYMBOLS.get(token, token)
+        if label not in ('C', 'CE', '+/-', '\u00f7', '\u00d7', '\u2212', '+', '.', '=',
+                         '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'):
+            raise ValueError(f'Unknown calculator button: {token}')
+        locator = (By.XPATH, f'//button[normalize-space(.)="{label}"]')
+        context.wait.until(EC.element_to_be_clickable(locator)).click()
+
+
+@when('I type "{text}"')
+def type_text(context, text):
+    context.browser.find_element(By.TAG_NAME, 'body').send_keys(text)
+
+
+@when('I press the "{key}" key')
+def press_key(context, key):
+    keys = {'Enter': Keys.ENTER, 'Escape': Keys.ESCAPE}
+    context.browser.find_element(By.TAG_NAME, 'body').send_keys(keys[key])
+
+
+@then('the display is "{expected}"')
+def check_display(context, expected):
+    # Exact equality: a display of 15 must not satisfy an expectation of 5.
+    context.wait.until(
+        lambda browser: browser.find_element(*DISPLAY).text == expected,
+        message=f'Expected calculator display {expected!r}',
+    )
+    assert context.browser.find_element(*DISPLAY).text == expected
+</code></pre></section>
+<section class="source-file" id="file-77656263616c632f6d61696e2e7079" aria-labelledby="title-file-77656263616c632f6d61696e2e7079" hidden><header class="file-header"><h2 id="title-file-77656263616c632f6d61696e2e7079">webcalc/main.py</h2></header><pre><code>from nicegui import ui
+
+from calculator import Calculator
+
+KEYS = [
+    [('C', 'clear'), ('CE', 'clear_entry'), ('+/-', 'negate'), ('/', 'op')],
+    [('7', 'digit'), ('8', 'digit'), ('9', 'digit'), ('*', 'op')],
+    [('4', 'digit'), ('5', 'digit'), ('6', 'digit'), ('-', 'op')],
+    [('1', 'digit'), ('2', 'digit'), ('3', 'digit'), ('+', 'op')],
+    [('0', 'digit'), ('.', 'decimal'), ('=', 'equals')],
+]
+
+SYMBOLS = {'/': '÷', '*': '×', '-': '−'}
+
+
+@ui.page('/')
+def index():
+    calc = Calculator()
+
+    def refresh():
+        display.set_text(calc.display)
+
+    def press(label, kind):
+        if kind == 'digit':
+            calc.digit(label)
+        elif kind == 'decimal':
+            calc.decimal()
+        elif kind == 'op':
+            calc.operate(label)
+        elif kind == 'equals':
+            calc.equals()
+        elif kind == 'negate':
+            calc.negate()
+        elif kind == 'clear':
+            calc.clear()
+        elif kind == 'clear_entry':
+            calc.clear_entry()
+        refresh()
+
+    def on_key(e):
+        if not e.action.keydown:
+            return
+        key = e.key.name
+        if key in '0123456789' and len(key) == 1:
+            press(key, 'digit')
+        elif key == '.':
+            press(key, 'decimal')
+        elif key in ('+', '-', '*', '/'):
+            press(key, 'op')
+        elif key in ('=', 'Enter'):
+            press('=', 'equals')
+        elif key in ('Escape', 'c', 'C'):
+            press('C', 'clear')
+
+    ui.keyboard(on_key=on_key)
+
+    with ui.column().classes('w-full items-center mt-10'):
+        with ui.card().classes('w-80 gap-2 p-4'):
+            display = ui.label('0').classes(
+                'w-full text-right text-4xl font-mono bg-gray-100 rounded p-4 overflow-hidden'
+            )
+            with ui.element('div').classes('w-full grid grid-cols-4 gap-2'):
+                for row in KEYS:
+                    for label, kind in row:
+                        if kind is None:
+                            ui.element('div')
+                            continue
+                        color = 'orange' if kind in ('op', 'equals') else 'grey-8'
+                        ui.button(
+                            SYMBOLS.get(label, label),
+                            on_click=lambda l=label, k=kind: press(l, k),
+                        ).props(f'color={color} unelevated').classes(
+                            'w-full text-xl h-14' + (' col-span-2' if kind == 'equals' else '')
+                        )
+
+
+ui.run(title='WebCalc', reload=False)
+</code></pre></section>
+<section class="source-file" id="file-77656263616c632f726571756972656d656e74732d746573742e747874" aria-labelledby="title-file-77656263616c632f726571756972656d656e74732d746573742e747874" hidden><header class="file-header"><h2 id="title-file-77656263616c632f726571756972656d656e74732d746573742e747874">webcalc/requirements-test.txt</h2></header><pre><code># Versions used for the WebCalc continuous integration example.
+nicegui==3.8.0
+pytest==9.0.2
+behave==1.3.3
+selenium==4.40.0
+</code></pre></section>
+<section class="source-file" id="file-77656263616c632f72756e5f62726f777365725f74657374732e7079" aria-labelledby="title-file-77656263616c632f72756e5f62726f777365725f74657374732e7079" hidden><header class="file-header"><h2 id="title-file-77656263616c632f72756e5f62726f777365725f74657374732e7079">webcalc/run_browser_tests.py</h2></header><pre><code>"""Start WebCalc, run headless behave tests, then stop the app.
+
+    python3 run_browser_tests.py
+
+Additional arguments are passed to behave, for example --junit.
+Port 8080 must be free. For an already running app use python3 -m behave instead.
+"""
+
+from pathlib import Path
+import subprocess
+import sys
+import time
+from urllib.error import URLError
+from urllib.request import urlopen
+
+ROOT = Path(__file__).resolve().parent
+URL = 'http://127.0.0.1:8080'
+
+
+def app_responds():
+    try:
+        with urlopen(URL, timeout=1) as response:
+            return response.status == 200
+    except (URLError, TimeoutError):
+        return False
+
+
+def main():
+    if app_responds():
+        print('Port 8080 already serves an app. Stop it before using this runner.', file=sys.stderr)
+        return 1
+    artifacts = ROOT / 'browser-test-artifacts'
+    artifacts.mkdir(exist_ok=True)
+    with (artifacts / 'app.log').open('w') as log:
+        app = subprocess.Popen([sys.executable, 'main.py'], cwd=ROOT,
+                               stdout=log, stderr=subprocess.STDOUT)
+        try:
+            deadline = time.monotonic() + 30
+            while not app_responds():
+                if app.poll() is not None or time.monotonic() &gt;= deadline:
+                    print('App failed to start. See browser-test-artifacts/app.log.', file=sys.stderr)
+                    return 1
+                time.sleep(0.2)
+            result = subprocess.run(
+                [sys.executable, '-m', 'behave', '-D', 'headless=true',
+                 '-D', f'base_url={URL}', *sys.argv[1:]], cwd=ROOT,
+            )
+            return result.returncode
+        finally:
+            app.terminate()
+            try:
+                app.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                app.kill()
+                app.wait()
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())
+</code></pre></section>
+<section class="source-file" id="file-77656263616c632f746573745f63616c63756c61746f722e7079" aria-labelledby="title-file-77656263616c632f746573745f63616c63756c61746f722e7079" hidden><header class="file-header"><h2 id="title-file-77656263616c632f746573745f63616c63756c61746f722e7079">webcalc/test_calculator.py</h2></header><pre><code>"""Tests of Calculator without a browser or NiceGUI.
+
+Run with either:
+    python3 -m pytest -v test_calculator.py
+    python3 test_calculator.py
+"""
+
+from calculator import Calculator
+
+
+def enter(calc, text):
+    """Enter a nonnegative number using the public calculator operations."""
+    for character in text:
+        if character == '.':
+            calc.decimal()
+        else:
+            calc.digit(character)
+
+
+def test_initial_display_is_zero():
+    calc = Calculator()
+    assert calc.display == '0'
+
+
+def test_enter_multiple_digits():
+    calc = Calculator()
+    enter(calc, '123')
+    assert calc.display == '123'
+
+
+def test_leading_zeros_do_not_accumulate():
+    calc = Calculator()
+    enter(calc, '0007')
+    assert calc.display == '7'
+
+
+def test_decimal_can_start_a_number():
+    calc = Calculator()
+    enter(calc, '.25')
+    assert calc.display == '0.25'
+
+
+def test_second_decimal_point_is_ignored():
+    calc = Calculator()
+    enter(calc, '1.2.3')
+    assert calc.display == '1.23'
+
+
+def test_entry_is_limited_to_twelve_digits():
+    calc = Calculator()
+    enter(calc, '1234567890123')
+    assert calc.display == '123456789012'
+
+
+def test_decimal_point_does_not_count_toward_digit_limit():
+    calc = Calculator()
+    enter(calc, '123456.7890123')
+    assert calc.display == '123456.789012'
+
+
+def test_addition():
+    calc = Calculator()
+    enter(calc, '2')
+    calc.operate('+')
+    enter(calc, '3')
+    calc.equals()
+    assert calc.display == '5'
+
+
+def test_subtraction_can_produce_a_negative_result():
+    calc = Calculator()
+    enter(calc, '3')
+    calc.operate('-')
+    enter(calc, '8')
+    calc.equals()
+    assert calc.display == '-5'
+
+
+def test_multiplication():
+    calc = Calculator()
+    enter(calc, '6')
+    calc.operate('*')
+    enter(calc, '7')
+    calc.equals()
+    assert calc.display == '42'
+
+
+def test_division_can_produce_a_fraction():
+    calc = Calculator()
+    enter(calc, '7')
+    calc.operate('/')
+    enter(calc, '2')
+    calc.equals()
+    assert calc.display == '3.5'
+
+
+def test_decimal_addition_has_a_readable_display():
+    calc = Calculator()
+    enter(calc, '0.1')
+    calc.operate('+')
+    enter(calc, '0.2')
+    calc.equals()
+    assert calc.display == '0.3'
+
+
+def test_negate_changes_sign_and_changes_it_back():
+    calc = Calculator()
+    enter(calc, '12.5')
+    calc.negate()
+    assert calc.display == '-12.5'
+    calc.negate()
+    assert calc.display == '12.5'
+
+
+def test_negating_zero_leaves_zero():
+    calc = Calculator()
+    calc.negate()
+    assert calc.display == '0'
+
+
+def test_negative_operand():
+    calc = Calculator()
+    enter(calc, '4')
+    calc.negate()
+    calc.operate('*')
+    enter(calc, '3')
+    calc.equals()
+    assert calc.display == '-12'
+
+
+def test_operations_evaluate_left_to_right():
+    # A basic calculator evaluates 2 + 3 before applying * 4.
+    calc = Calculator()
+    enter(calc, '2')
+    calc.operate('+')
+    enter(calc, '3')
+    calc.operate('*')
+    assert calc.display == '5'
+    enter(calc, '4')
+    calc.equals()
+    assert calc.display == '20'
+
+
+def test_second_operator_replaces_the_pending_operator():
+    calc = Calculator()
+    enter(calc, '8')
+    calc.operate('+')
+    calc.operate('-')
+    enter(calc, '3')
+    calc.equals()
+    assert calc.display == '5'
+
+
+def test_clear_discards_a_pending_operation():
+    calc = Calculator()
+    enter(calc, '9')
+    calc.operate('+')
+    enter(calc, '4')
+    calc.clear()
+    assert calc.display == '0'
+    enter(calc, '2')
+    calc.equals()
+    assert calc.display == '2'
+
+
+def test_clear_entry_preserves_the_pending_operation():
+    calc = Calculator()
+    enter(calc, '9')
+    calc.operate('+')
+    enter(calc, '45')
+    calc.clear_entry()
+    assert calc.display == '0'
+    enter(calc, '2')
+    calc.equals()
+    assert calc.display == '11'
+
+
+def test_digit_after_equals_starts_a_new_number():
+    calc = Calculator()
+    enter(calc, '2')
+    calc.operate('+')
+    enter(calc, '3')
+    calc.equals()
+    enter(calc, '7')
+    assert calc.display == '7'
+    calc.equals()
+    assert calc.display == '7'
+
+
+def test_decimal_after_equals_starts_a_new_number():
+    calc = Calculator()
+    enter(calc, '2')
+    calc.operate('+')
+    enter(calc, '3')
+    calc.equals()
+    enter(calc, '.5')
+    assert calc.display == '0.5'
+
+
+def test_result_can_be_used_in_another_operation():
+    calc = Calculator()
+    enter(calc, '2')
+    calc.operate('+')
+    enter(calc, '3')
+    calc.equals()
+    calc.operate('*')
+    enter(calc, '4')
+    calc.equals()
+    assert calc.display == '20'
+
+
+def test_equals_without_an_operator_leaves_the_number():
+    calc = Calculator()
+    enter(calc, '17')
+    calc.equals()
+    assert calc.display == '17'
+
+
+def test_division_by_zero_displays_error():
+    calc = Calculator()
+    enter(calc, '8')
+    calc.operate('/')
+    enter(calc, '0')
+    calc.equals()
+    assert calc.display == 'Error'
+    calc.equals()
+    calc.operate('+')
+    calc.negate()
+    assert calc.display == 'Error'
+
+
+def test_digit_recovers_from_division_by_zero():
+    calc = Calculator()
+    enter(calc, '8')
+    calc.operate('/')
+    enter(calc, '0')
+    calc.equals()
+    assert calc.display == 'Error'
+    enter(calc, '7')
+    calc.operate('+')
+    enter(calc, '2')
+    calc.equals()
+    assert calc.display == '9'
+
+
+def test_decimal_recovers_from_division_by_zero():
+    calc = Calculator()
+    enter(calc, '8')
+    calc.operate('/')
+    enter(calc, '0')
+    calc.equals()
+    assert calc.display == 'Error'
+    enter(calc, '.5')
+    assert calc.display == '0.5'
+
+
+def test_clear_entry_recovers_from_division_by_zero():
+    calc = Calculator()
+    enter(calc, '8')
+    calc.operate('/')
+    enter(calc, '0')
+    calc.equals()
+    assert calc.display == 'Error'
+    calc.clear_entry()
+    assert calc.display == '0'
+    enter(calc, '6')
+    calc.equals()
+    assert calc.display == '6'
+
+
+def main():
+    # Run the same test functions pytest discovers, without importing pytest.
+    tests = sorted((name, function) for name, function in globals().items()
+                   if name.startswith('test_') and callable(function))
+    failures = 0
+    for name, function in tests:
+        try:
+            function()
+        except Exception as error:
+            failures += 1
+            print(f'FAIL {name}: {type(error).__name__}: {error}')
+        else:
+            print(f'PASS {name}')
+    print(f'{len(tests) - failures} passed, {failures} failed')
+    return 1 if failures else 0
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())
+</code></pre></section>
+<section class="source-file" id="file-77656263616c632f746573745f6d61696e2e7079" aria-labelledby="title-file-77656263616c632f746573745f6d61696e2e7079" hidden><header class="file-header"><h2 id="title-file-77656263616c632f746573745f6d61696e2e7079">webcalc/test_main.py</h2></header><pre><code>"""Simulate WebCalc button clicks without starting a browser.
+
+Run with either:
+    python3 -m pytest -v test_main.py
+    python3 test_main.py
+
+NiceGUI's user_simulation is the same mechanism used by its pytest user
+fixture. Using it directly lets these tests also run from main.
+These checks exercise Python UI handlers, not browser layout or JavaScript.
+"""
+
+import asyncio
+from pathlib import Path
+
+APP_FILE = Path(__file__).with_name('main.py')
+
+
+async def check_display(user, expected):
+    from nicegui import ui
+
+    # A button marked "5" must not count as a displayed result of "5".
+    await user.should_see(kind=ui.label, content=expected)
+    labels = user.find(ui.label).elements
+    assert len(labels) == 1, 'Expected exactly one calculator display'
+    actual = next(iter(labels)).text
+    assert actual == expected, f'Expected display {expected!r}, got {actual!r}'
+
+
+async def click_and_check(checkpoints):
+    from nicegui import ui
+    from nicegui.testing import UserInteraction, user_simulation
+
+    async with user_simulation(main_file=APP_FILE) as user:
+        await user.open('/')
+        await check_display(user, '0')
+        for buttons, expected in checkpoints:
+            for text in buttons:
+                matches = {button for button in user.find(ui.button).elements
+                           if button.text == text}
+                assert len(matches) == 1, f'Expected one button labeled {text!r}'
+                UserInteraction(user, matches, text).click()
+            await check_display(user, expected)
+
+
+def test_page_starts_with_zero():
+    asyncio.run(click_and_check([]))
+
+
+def test_addition_buttons_update_display():
+    asyncio.run(click_and_check([(['2', '+', '3', '='], '5')]))
+
+
+def test_subtraction_button_is_connected():
+    asyncio.run(click_and_check([(['3', '\u2212', '8', '='], '-5')]))
+
+
+def test_multiplication_button_is_connected():
+    asyncio.run(click_and_check([(['6', '\u00d7', '7', '='], '42')]))
+
+
+def test_division_button_is_connected():
+    asyncio.run(click_and_check([(['7', '\u00f7', '2', '='], '3.5')]))
+
+
+def test_decimal_button():
+    asyncio.run(click_and_check([
+        (['.', '2', '5'], '0.25'),
+        (['+', '.', '5', '='], '0.75'),
+    ]))
+
+
+def test_sign_button():
+    asyncio.run(click_and_check([
+        (['1', '2', '+/-'], '-12'),
+        (['+/-'], '12'),
+    ]))
+
+
+def test_clear_button_discards_pending_calculation():
+    asyncio.run(click_and_check([
+        (['9', '+', '4', 'C'], '0'),
+        (['2', '='], '2'),
+    ]))
+
+
+def test_clear_entry_button_keeps_pending_calculation():
+    asyncio.run(click_and_check([
+        (['9', '+', '4', '5', 'CE'], '0'),
+        (['2', '='], '11'),
+    ]))
+
+
+def test_error_is_displayed_and_next_digit_recovers():
+    asyncio.run(click_and_check([
+        (['8', '\u00f7', '0', '='], 'Error'),
+        (['7'], '7'),
+        (['+', '2', '='], '9'),
+    ]))
+
+
+def test_digit_after_result_starts_new_entry():
+    asyncio.run(click_and_check([
+        (['2', '+', '3', '='], '5'),
+        (['7'], '7'),
+    ]))
+
+
+def test_chained_operations_update_display():
+    asyncio.run(click_and_check([
+        (['2', '+', '3', '\u00d7'], '5'),
+        (['4', '='], '20'),
+    ]))
+
+
+def main():
+    # Run inside pytest so NiceGUI uses its test environment in both modes.
+    import pytest
+    return pytest.main(['-v', str(Path(__file__).resolve())])
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())
+</code></pre></section>
+<section class="source-file" id="file-77656263616c632e7a6970" aria-labelledby="title-file-77656263616c632e7a6970" hidden><header class="file-header"><h2 id="title-file-77656263616c632e7a6970">webcalc.zip</h2></header><p class="binary">This is a binary data file. It is available in the repository linked below.</p></section></div>
+</div>
+<p>The files are available in the <a href="https://github.com/kentcs/software-engineering/tree/main/chapter-06-continuous-integration/code">course repository</a>.</p>
+</main>
+<script>
+const links = [...document.querySelectorAll('nav a')];
+const panels = [...document.querySelectorAll('.source-file')];
+function showFile() {
+ const selected = links.find(link => link.hash === location.hash) || links[0];
+ if (!selected) return;
+ for (const link of links) link === selected ? link.setAttribute('aria-current', 'true') : link.removeAttribute('aria-current');
+ for (const panel of panels) panel.hidden = '#' + panel.id !== selected.hash;
+}
+window.addEventListener('hashchange', showFile);
+showFile();
+</script>
+</body>
+</html>

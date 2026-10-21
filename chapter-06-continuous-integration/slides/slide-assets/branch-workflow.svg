@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="350" viewBox="0 0 1120 350">
+<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8" fill="none" stroke="#17675d" stroke-width="1.4"/></marker></defs>
+<g fill="none" stroke="#17675d" stroke-width="4"><path d="M160 85 H930" marker-end="url(#arrow)"/><path d="M180 85 V245 H680 V85" marker-end="url(#arrow)"/></g>
+<g fill="#fcfbf7" stroke="#17675d" stroke-width="4"><circle cx="180" cy="85" r="18"/><circle cx="680" cy="85" r="18"/><circle cx="350" cy="245" r="18"/><circle cx="570" cy="245" r="18"/></g>
+<g font-family="Georgia,serif" fill="#23322e" text-anchor="middle"><text x="95" y="95" font-size="32">main</text><text x="180" y="45" font-size="28">accepted version</text><text x="680" y="45" font-size="28">merge</text><text x="350" y="300" font-size="28">proposed fix</text><text x="570" y="300" font-size="28">revision</text><text x="925" y="160" font-size="30">Tests + review</text><text x="925" y="200" font-size="25">before the merge</text></g></svg>

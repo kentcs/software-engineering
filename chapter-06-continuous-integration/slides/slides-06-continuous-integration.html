@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Software Engineering: Continuous Integration</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="slide-assets/reveal.css">
+<link rel="stylesheet" href="slide-assets/slides.css">
+</head><body><div class="reveal"><div class="slides"><section><h1 id="continuous-integration">Continuous Integration</h1>
+<p class="subtitle">
+Run locally. Push. Read the result. Repair.
+</p>
+<hr style="border:0;border-top:1px solid #b7c9c1;margin:32px 0 18px">
+<p class="slide-author">
+Gregory S. DeLozier, PhD
+</p>
+</section>
+<section><h2 id="tests-need-to-get-run">Tests need to get run</h2>
+<p>A working change can still break another behavior.</p>
+<p><strong>Run the checks on each pushed version.</strong></p>
+<p>Keep the result attached to the version that was tested.</p>
+</section>
+<section><h2 id="one-app-three-testing-methods">One app, three testing
+methods</h2>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Exercises</th>
+<th>Passing baseline</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Direct calls with pytest</td>
+<td>Calculator logic</td>
+<td>27 tests</td>
+</tr>
+<tr>
+<td>NiceGUI simulation</td>
+<td>Button handlers and display</td>
+<td>12 tests</td>
+</tr>
+<tr>
+<td>behave + WebDriver</td>
+<td>Running app in Chrome</td>
+<td>12 scenarios</td>
+</tr>
+</tbody>
+</table>
+<p>GUI: graphical user interface.</p>
+</section>
+<section><h2 id="testing-reach-makes-compartmentalization-useful">Testing reach
+makes compartmentalization useful</h2>
+<p>Without direct access, testing the math becomes clicking web
+buttons.</p>
+<table>
+<thead>
+<tr>
+<th>Check</th>
+<th>Reach it through</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Arithmetic</td>
+<td><code>Calculator</code> methods</td>
+</tr>
+<tr>
+<td>Button wiring and display updates</td>
+<td>NiceGUI simulation</td>
+</tr>
+<tr>
+<td>Real browser interaction</td>
+<td>behave + WebDriver</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Check each part directly, then check its
+connections.</strong></p>
+</section>
+<section><h2 id="extract-the-student-starting-point">Extract the student starting
+point</h2>
+<p>Extract <strong>webcalc.zip</strong> into a fresh working
+location.</p>
+<p>The archive includes <code>.github/</code> and
+<code>.gitignore</code>.</p>
+<pre class="text"><code>webcalc/
+  main.py                  calculator.py
+  test_main.py             test_calculator.py
+  requirements-test.txt    run_browser_tests.py
+  features/
+  .github/workflows/webcalc-tests.yml</code></pre>
+<p><strong>Open a terminal in this extracted folder.</strong></p>
+</section>
+<section><h2 id="create-a-local-environment">Create a local environment</h2>
+<p>Use Python 3.12 to match the Actions jobs.</p>
+<p>macOS / Linux:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python3.12</span> <span class="at">-m</span> venv .venv</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> .venv/bin/activate</span></code></pre></div>
+<p>Windows PowerShell:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>py <span class="op">-</span><span class="dv">3.12</span> <span class="op">-</span>m venv <span class="op">.</span><span class="fu">venv</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="op">.</span><span class="fu">venv</span>\Scripts\Activate<span class="op">.</span><span class="fu">ps1</span></span></code></pre></div>
+<p>After activation, use <code>python</code> on either platform.</p>
+</section>
+<section><h2 id="run-the-app-locally">Run the app locally</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> pip install <span class="at">-r</span> requirements-test.txt</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> main.py</span></code></pre></div>
+<p>Open <code>http://localhost:8080</code>.</p>
+<p>Click <code>2</code>, <code>+</code>, <code>3</code>, <code>=</code>.
+Expected display: <strong>5</strong>.</p>
+<p>Stop the app with <strong>Ctrl+C</strong> before the browser
+runner.</p>
+</section>
+<section><h2 id="run-the-unit-tests-first">Run the unit tests first</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> pytest <span class="at">-v</span> test_calculator.py</span></code></pre></div>
+<p>Expected: <strong>27 passed</strong>.</p>
+<p>The tests call <code>Calculator</code> directly.</p>
+<p>No NiceGUI page or browser is involved.</p>
+</section>
+<section><h2 id="run-the-simulated-gui-tests">Run the simulated GUI tests</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> pytest <span class="at">-v</span> test_main.py</span></code></pre></div>
+<p>Expected: <strong>12 passed</strong>.</p>
+<p>NiceGUI simulates clicks on the real page’s Python elements.</p>
+<p>The checks read the display label, not a numbered button.</p>
+</section>
+<section><h2 id="run-the-real-browser-tests">Run the real browser tests</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> run_browser_tests.py</span></code></pre></div>
+<p>Expected: <strong>12 scenarios, 51 steps passed</strong>.</p>
+<table>
+<thead>
+<tr>
+<th>Runner action</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Start WebCalc and wait</td>
+<td>App responds on port 8080</td>
+</tr>
+<tr>
+<td>Run behave</td>
+<td>Headless Chrome exercises the app</td>
+</tr>
+<tr>
+<td>Finish</td>
+<td>App process stops</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section><h2 id="save-the-passing-baseline">Save the passing baseline</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> init <span class="at">-b</span> main</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> add .</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> status <span class="at">--short</span></span></code></pre></div>
+<p>Verify the app, tests, and workflow are staged.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> commit <span class="at">-m</span> <span class="st">&quot;Add WebCalc with three layers of tests&quot;</span></span></code></pre></div>
+<p><strong>All three test layers have passed locally.</strong></p>
+</section>
+<section><h2 id="create-webcalc-on-github">Create webcalc on GitHub</h2>
+<p>With GitHub command-line interface (CLI) installed:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">gh</span> auth login</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">gh</span> repo create webcalc <span class="at">--private</span> <span class="at">--source</span><span class="op">=</span>. <span class="at">--remote</span><span class="op">=</span>origin <span class="at">--push</span></span></code></pre></div>
+<p>Expected: a new <strong>webcalc</strong> repository containing the
+baseline.</p>
+<p>Use <code>--public</code> for a public class repository.</p>
+</section>
+<section><h2 id="alternative-create-it-on-the-website">Alternative: create it on
+the website</h2>
+<p>Create an empty repository named <strong>webcalc</strong> on
+GitHub.</p>
+<p>Leave README, license, and gitignore initialization unchecked.</p>
+<p>Replace <code>YOUR_USERNAME</code>, then run:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> remote add origin https://github.com/YOUR_USERNAME/webcalc.git</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> push <span class="at">-u</span> origin main</span></code></pre></div>
+<p><strong>Use this route or the CLI creation route, not
+both.</strong></p>
+</section>
+<section><h2 id="the-workflow-lives-with-the-code">The workflow lives with the
+code</h2>
+<p>File: <code>.github/workflows/webcalc-tests.yml</code></p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">name</span><span class="kw">:</span><span class="at"> WebCalc tests</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">on</span><span class="kw">:</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">push</span><span class="kw">:</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">pull_request</span><span class="kw">:</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">workflow_dispatch</span><span class="kw">:</span></span></code></pre></div>
+<p>Pushes start runs. The manual trigger supports reruns on demand.</p>
+</section>
+<section><h2 id="three-jobs-from-one-matrix">Three jobs from one matrix</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">strategy</span><span class="kw">:</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">fail-fast</span><span class="kw">:</span><span class="at"> </span><span class="ch">false</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">matrix</span><span class="kw">:</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">layer</span><span class="kw">:</span><span class="at"> </span><span class="kw">[</span><span class="at">unit</span><span class="kw">,</span><span class="at"> simulated-gui</span><span class="kw">,</span><span class="at"> browser</span><span class="kw">]</span></span></code></pre></div>
+<p>Each layer gets its own runner and result.</p>
+<p><strong>A unit failure does not cancel the other two
+jobs.</strong></p>
+</section>
+<section><h2 id="the-same-commands-on-another-machine">The same commands, on
+another machine</h2>
+<table>
+<thead>
+<tr>
+<th>Job</th>
+<th>Test command</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>unit</td>
+<td><code>python -m pytest -v test_calculator.py</code></td>
+</tr>
+<tr>
+<td>simulated-gui</td>
+<td><code>python -m pytest -v test_main.py</code></td>
+</tr>
+<tr>
+<td>browser</td>
+<td><code>python run_browser_tests.py</code></td>
+</tr>
+</tbody>
+</table>
+<p>The workflow adds report options and saves artifacts.</p>
+<p><strong>No development server needs to be left running.</strong></p>
+</section>
+<section><h2 id="inspect-the-first-actions-run">Inspect the first Actions
+run</h2>
+<p>Open <strong>Actions &gt; WebCalc tests &gt; the first
+push</strong>.</p>
+<table>
+<thead>
+<tr>
+<th>Job</th>
+<th>Expected</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>WebCalc / unit</td>
+<td>27 passed</td>
+</tr>
+<tr>
+<td>WebCalc / simulated-gui</td>
+<td>12 passed</td>
+</tr>
+<tr>
+<td>WebCalc / browser</td>
+<td>12 scenarios, 51 steps passed</td>
+</tr>
+</tbody>
+</table>
+<p>Expand each test step and read its output.</p>
+</section>
+<section><h2 id="break-one-expectation">Break one expectation</h2>
+<p>File: <code>test_calculator.py</code>, function
+<code>test_addition</code>.</p>
+<p>Change the final assertion to:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> calc.display <span class="op">==</span> <span class="st">&#39;6&#39;</span></span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> pytest <span class="at">-v</span> test_calculator.py <span class="at">-k</span> test_addition</span></code></pre></div>
+<p>Expected: <strong>1 failed</strong>. Actual <code>5</code>;
+deliberately expected <code>6</code>.</p>
+</section>
+<section><h2 id="push-the-known-failure">Push the known failure</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> add test_calculator.py</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> commit <span class="at">-m</span> <span class="st">&quot;Demonstrate a failing addition check&quot;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> push</span></code></pre></div>
+<p>Open the new Actions run.</p>
+<table>
+<thead>
+<tr>
+<th>unit</th>
+<th>simulated-gui</th>
+<th>browser</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Fail</strong></td>
+<td>Pass</td>
+<td>Pass</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section><h2 id="read-the-failed-assertion">Read the failed assertion</h2>
+<p>Open <strong>WebCalc / unit &gt; Test calculator logic</strong>.</p>
+<p>Expected comparison:</p>
+<pre class="text"><code>actual display:    &#39;5&#39;
+expected display:  &#39;6&#39;</code></pre>
+<p><strong>The test is wrong in this exercise. Repair the
+expectation.</strong></p>
+</section>
+<section><h2 id="repair-it-locally">Repair it locally</h2>
+<p>Restore <code>test_addition</code>:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> calc.display <span class="op">==</span> <span class="st">&#39;5&#39;</span></span></code></pre></div>
+<p>Run all three layers:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> pytest <span class="at">-v</span> test_calculator.py</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> pytest <span class="at">-v</span> test_main.py</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> run_browser_tests.py</span></code></pre></div>
+<p>Expected: <strong>27 tests, 12 tests, 12 scenarios pass</strong>.</p>
+</section>
+<section><h2 id="push-the-repair-and-confirm-green">Push the repair and confirm
+green</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> add test_calculator.py</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> commit <span class="at">-m</span> <span class="st">&quot;Restore the correct addition expectation&quot;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> push</span></code></pre></div>
+<p>Expected: <strong>all three jobs pass on the new run</strong>.</p>
+<p>The earlier failed run remains attached to the earlier commit.</p>
+</section>
+<section><h2 id="keep-the-feedback-useful">Keep the feedback useful</h2>
+<p>Run locally before pushing.</p>
+<p>Inspect failures and repair the cause.</p>
+<p>Check which revision produced the result.</p>
+<p><strong>Use automation to make the shared work easier to
+trust.</strong></p>
+</section></div></div>
+<script src="slide-assets/reveal.js"></script>
+<script>Reveal.initialize({width:1280,height:720,margin:0.05,center:true,hash:true,slideNumber:true,transition:'none'});</script>
+</body></html>

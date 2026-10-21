@@ -1,0 +1,34 @@
+WebCalc browser tests
+
+Run these commands from this webcalc directory. Install Chrome first.
+The Python packages needed are nicegui, behave, and selenium:
+    python3 -m pip install nicegui behave selenium
+
+1. Start the app in a terminal and leave it running:
+    python3 main.py
+
+2. In another terminal, run all browser scenarios with visible Chrome:
+    python3 -m behave
+
+   Or run Chrome headlessly:
+    python3 -m behave -D headless=true
+
+   To test an app running elsewhere:
+    python3 -m behave -D base_url=http://localhost:8080 -D headless=true
+
+Expected result: 12 scenarios pass. Each scenario gets a fresh Chrome session.
+Selenium Manager manages ChromeDriver; initial setup may require internet access.
+On Windows, use py instead of python3 if that is your Python launcher.
+
+The feature file is features/calculator.feature. Button sequences use spaces
+between buttons and ASCII * / - for the displayed multiplication, division,
+and subtraction buttons. Keyboard scenarios send real browser key events.
+Tests wait for the page, websocket connection, and exact expected display.
+Failed scenarios save screenshots under browser-test-artifacts/.
+
+These tests exercise the rendered app through Selenium WebDriver. They do not
+import Calculator or call NiceGUI's simulated-user layer. The earlier tests
+remain independently runnable:
+    python3 -m pytest -v test_calculator.py test_main.py
+
+No changes to the application code are required.
