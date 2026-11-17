@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Software Engineering: Deploying WebCalc</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="slide-assets/reveal.css">
+<link rel="stylesheet" href="slide-assets/slides.css">
+</head><body><div class="reveal"><div class="slides"><section><h1 id="deploying-webcalc">Deploying WebCalc</h1>
+<p class="subtitle">
+A tested application on a server
+</p>
+<hr>
+<p class="slide-author">
+Gregory S. DeLozier, PhD
+</p>
+</section>
+<section><h2 id="the-deployment-target">The deployment target</h2>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Server</td>
+<td><code>webcalc.kentcs.org</code></td>
+</tr>
+<tr>
+<td>Account and directory</td>
+<td><code>webcalc</code>, <code>/home/webcalc</code></td>
+</tr>
+<tr>
+<td>Port and Screen session</td>
+<td><code>8080</code>, <code>webcalc</code></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section><h2 id="run-the-tests-locally">Run the tests locally</h2>
+<p>In <code>code/webcalc/</code>, with the test environment active:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> pytest <span class="at">-v</span> test_calculator.py</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> pytest <span class="at">-v</span> test_main.py</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> run_browser_tests.py</span></code></pre></div>
+<p>Expected: <strong>27 tests, 12 tests, 12 scenarios</strong> pass.</p>
+</section>
+<section><h2 id="three-methods-three-kinds-of-evidence">Three methods, three
+kinds of evidence</h2>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>What it reaches</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Direct unit tests</td>
+<td>Calculator operations</td>
+</tr>
+<tr>
+<td>NiceGUI simulated user</td>
+<td>Interface event handling</td>
+</tr>
+<tr>
+<td>behave and Selenium</td>
+<td>Real browser interaction</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section><h2 id="the-release-gate">The release gate</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">deploy</span><span class="kw">:</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">needs</span><span class="kw">:</span><span class="at"> test</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">runs-on</span><span class="kw">:</span><span class="at"> ubuntu-latest</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">environment</span><span class="kw">:</span><span class="at"> production</span></span></code></pre></div>
+<p>All three test jobs must pass before the server changes.</p>
+</section>
+<section><h2 id="deployment-credentials">Deployment credentials</h2>
+<p>In GitHub: <strong>Settings &gt; Environments &gt;
+production</strong></p>
+<table>
+<thead>
+<tr>
+<th>Secret</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>DEPLOY_SSH_KEY</code></td>
+<td>Authenticate the client</td>
+</tr>
+<tr>
+<td><code>DEPLOY_KNOWN_HOSTS</code></td>
+<td>Verify the server</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section><h2 id="copy-the-runtime-files">Copy the runtime files</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">scp</span> main.py calculator.py requirements.txt <span class="dt">\</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  webcalc@webcalc.kentcs.org:/home/webcalc/</span></code></pre></div>
+<p>The workflow adds strict SSH options.</p>
+<p><strong>Three files. No compilation step.</strong></p>
+</section>
+<section><h2 id="run-the-remote-script">Run the remote script</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> webcalc@webcalc.kentcs.org <span class="dt">\</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">&#39;bash -s&#39;</span> <span class="op">&lt;</span> scripts/deploy.sh</span></code></pre></div>
+<p>Install dependencies, stop the old session, start WebCalc.</p>
+</section>
+<section><h2 id="start-a-detached-screen-session">Start a detached Screen
+session</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">screen</span> <span class="at">-dmS</span> webcalc bash <span class="at">-c</span> <span class="dt">\</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">&#39;exec .venv/bin/python main.py \</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="st">  &gt;&gt; /home/webcalc/webcalc.log 2&gt;&amp;1&#39;</span></span></code></pre></div>
+<p>The app survives SSH logout. It does <strong>not</strong> restart
+itself after a reboot.</p>
+</section>
+<section><h2 id="run-the-deployment">Run the deployment</h2>
+<p>In the configured WebCalc repository:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">gh</span> workflow run release.yml <span class="at">--ref</span> main</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">gh</span> run list <span class="at">--workflow</span> release.yml <span class="at">--limit</span> 5</span></code></pre></div>
+<p>Expected: three test jobs pass, then deployment succeeds.</p>
+</section>
+<section><h2 id="inspect-the-running-app">Inspect the running app</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> webcalc@webcalc.kentcs.org</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">screen</span> <span class="at">-ls</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">tail</span> <span class="at">-f</span> /home/webcalc/webcalc.log</span></code></pre></div>
+<p>Open the public page: <strong>2 + 3 = 5</strong>.</p>
+</section>
+<section><h2 id="readiness-is-a-limited-check">Readiness is a limited check</h2>
+<table>
+<thead>
+<tr>
+<th>Check</th>
+<th>What it establishes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Local HTTP request</td>
+<td>The server answers on port 8080</td>
+</tr>
+<tr>
+<td>Public browser request</td>
+<td>The external route works</td>
+</tr>
+<tr>
+<td>Calculate 2 + 3</td>
+<td>One interactive operation works</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section><h2 id="the-cost-of-a-direct-update">The cost of a direct update</h2>
+<p>Files change in place.</p>
+<p>Restart causes brief downtime.</p>
+<p>No retained release or automatic rollback.</p>
+</section>
+<section><h2 id="inspect-a-failed-test-run">Inspect a failed test run</h2>
+<p>In a personal sandbox repository:</p>
+<p>Change one assertion in <code>test_calculator.py</code>. Push.</p>
+<p>Expected: unit-test job fails.</p>
+<p>Restore the assertion and push. Expected: pass.</p>
+</section></div></div>
+<script src="slide-assets/reveal.js"></script>
+<script>Reveal.initialize({width:1280,height:720,margin:0.05,center:true,hash:true,slideNumber:true,transition:'none'});</script>
+</body></html>

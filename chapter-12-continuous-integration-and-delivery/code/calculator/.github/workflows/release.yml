@@ -1,0 +1,110 @@
+name: Release calculator
+
+on:
+  push:
+    branches: [production]
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Commit to release (blank uses the selected branch)'
+        required: false
+
+permissions:
+  contents: read
+
+# One release at a time; a second run waits instead of overlapping the first.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+      - name: Install test dependencies
+        run: python -m pip install -r requirements-dev.txt
+      - name: Run calculator tests
+        run: python -m pytest -q
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    outputs:
+      release_id: ${{ steps.id.outputs.release_id }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+      - name: Name the release after the commit
+        id: id
+        run: echo "release_id=$(git rev-parse --short=7 HEAD)" >> "$GITHUB_OUTPUT"
+      - name: Build the release archive
+        run: scripts/build_release.sh "${{ steps.id.outputs.release_id }}" "$(git rev-parse HEAD)"
+      - name: Smoke-test the archive, not just the source
+        run: |
+          mkdir unpacked
+          tar -xzf "dist/calculator-${{ steps.id.outputs.release_id }}.tar.gz" -C unpacked
+          unpacked/smoke_test.sh unpacked
+      - name: Keep the archive with this run
+        uses: actions/upload-artifact@v7
+        with:
+          name: calculator-release
+          path: dist/
+          retention-days: 30
+          if-no-files-found: error
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: production
+    env:
+      DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
+      DEPLOY_USER: ${{ vars.DEPLOY_USER }}
+      DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
+      DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+      DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+      RELEASE_ID: ${{ needs.build.outputs.release_id }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+      - name: Check deployment settings
+        run: scripts/check_deploy_config.sh
+      - uses: actions/download-artifact@v8
+        with:
+          name: calculator-release
+          path: dist
+      - name: Set up SSH
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          cat > ~/.ssh/config <<CONFIG
+          Host target
+            HostName $DEPLOY_HOST
+            User $DEPLOY_USER
+            IdentityFile ~/.ssh/deploy_key
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+          CONFIG
+      - name: Upload the archive
+        run: |
+          ssh target "mkdir -p '$DEPLOY_PATH/incoming'"
+          scp dist/calculator-$RELEASE_ID.tar.gz dist/calculator-$RELEASE_ID.tar.gz.sha256 \
+            "target:$DEPLOY_PATH/incoming/"
+      - name: Install and activate the release
+        run: ssh target "bash -s -- '$DEPLOY_PATH' '$RELEASE_ID' install" < scripts/remote_install.sh
+      - name: Confirm the running version
+        run: |
+          running="$(ssh target "cat '$DEPLOY_PATH/current/VERSION'")"
+          echo "Server is running $running"
+          test "$running" = "$(git rev-parse HEAD)"

@@ -1,0 +1,27 @@
+Deploy WebCalc
+
+Target: webcalc@webcalc.kentcs.org, directory /home/webcalc.
+Server needs Python 3.10 or newer with venv support, screen, and curl.
+The account must be able to install Python packages and write its home directory.
+
+In the GitHub production environment, add:
+  DEPLOY_SSH_KEY: private SSH key for the webcalc account.
+  DEPLOY_KNOWN_HOSTS: independently verified host-key entry for webcalc.kentcs.org.
+
+Commit these files together, then run Deploy WebCalc manually from Actions,
+or push the desired commit to production. All three existing testing layers
+must pass before deployment. No separate build is needed for this Python app.
+
+The workflow copies main.py, calculator.py, and requirements.txt to /home/webcalc.
+It installs dependencies in .venv, replaces the webcalc Screen session, and
+checks http://127.0.0.1:8080/. This is a direct update, with brief downtime.
+It does not retain old releases, roll back automatically, or configure HTTPS.
+Existing DNS/proxy/firewall settings determine external access.
+
+On the server:
+  screen -ls
+  screen -r webcalc
+  tail -f /home/webcalc/webcalc.log
+Detach from Screen with Ctrl-A followed by D. The app stays running after SSH
+logout, but Screen does not automatically restart it after a server reboot.
+Restart manually after a reboot by running the commands in scripts/deploy.sh.

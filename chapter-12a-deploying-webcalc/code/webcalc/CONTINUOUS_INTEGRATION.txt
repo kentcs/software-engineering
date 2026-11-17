@@ -1,0 +1,47 @@
+WebCalc: the Continuous Integration example
+
+The standalone webcalc repository workflow is .github/workflows/webcalc-tests.yml.
+Copy this entire webcalc directory, including its hidden .github directory and
+.gitignore, into the repository used for the exercise. Do not upload the course
+repository as a whole.
+
+Every push or pull request starts three independent jobs. A failure in one does
+not prevent the others from reporting their results. The workflow can also be
+started with Run workflow on GitHub's Actions page.
+
+1. unit: pytest runs test_calculator.py against the Calculator class.
+2. simulated-gui: pytest runs test_main.py using NiceGUI's user simulation.
+3. browser: starts the app and runs behave through actual headless Chrome.
+
+Each job checks out the proposed code, sets up Python 3.12, and installs the
+versions in requirements-test.txt. No already-running development server is
+required. GitHub's Ubuntu runner includes Chrome; Selenium Manager supplies
+the matching driver. The jobs upload JUnit test reports. The browser job also
+uploads its app log and any failure screenshots, retained for seven days.
+
+Local commands, from this directory:
+    python3 -m pip install -r requirements-test.txt
+    python3 -m pytest -v test_calculator.py
+    python3 -m pytest -v test_main.py
+    python3 run_browser_tests.py
+
+The browser runner requires port 8080 to be free and stops the app on exit.
+For an app you have already started, use python3 -m behave -D headless=true.
+
+Expected results: 27 logic tests, 12 simulated GUI tests, and 12 browser
+scenarios containing 51 steps. A failed test gives a nonzero process exit code,
+which makes its Actions job fail. Passing these checks supplies evidence about
+these behaviors; it does not prove the app is correct for every input.
+
+Class exercise:
+Change the expected answer in test_addition from '5' to '6', commit, and push.
+The unit job should fail while the other two jobs pass. Inspect the failing
+assertion in Actions. Restore '5', commit, and push; all three jobs should pass.
+
+Repository creation and first push: see CREATE_GITHUB_REPO.txt.
+
+References:
+GitHub, Building and testing Python:
+https://docs.github.com/en/actions/tutorials/build-and-test-code/python
+GitHub, Workflow syntax:
+https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax

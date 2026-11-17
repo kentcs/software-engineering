@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Software Engineering: Continuous Integration and Continuous Delivery</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="slide-assets/reveal.css">
+<link rel="stylesheet" href="slide-assets/slides.css">
+</head><body><div class="reveal"><div class="slides"><section><h1 id="continuous-integration-and-continuous-delivery">Continuous
+Integration and Continuous Delivery</h1>
+<p class="subtitle">
+From approved code to a running, verified release
+</p>
+<hr>
+<p class="slide-author">
+Gregory S. DeLozier, PhD
+</p>
+</section>
+<section><h2 id="approved-is-not-delivered">Approved is not delivered</h2>
+<p>The calculator is tested, reviewed, and merged.</p>
+<p><strong>Nobody can run it yet.</strong></p>
+<p>Copying files by hand drops a file, uses the wrong branch, and leaves
+no record of what is live.</p>
+</section>
+<section><h2 id="integration-delivery-deployment">Integration, delivery,
+deployment</h2>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Practice</th>
+<th>What it adds</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Continuous integration (CI)</td>
+<td>Frequent merges, automated checks</td>
+</tr>
+<tr>
+<td>Continuous delivery (CD)</td>
+<td>Always releasable; release is a routine step</td>
+</tr>
+<tr>
+<td>Continuous deployment</td>
+<td>Every passing change releases itself</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Which decision do we keep for a person?</strong></p>
+</section>
+<section><h2 id="two-branches-two-decisions">Two branches, two decisions</h2>
+<table>
+<thead>
+<tr>
+<th>Branch</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>main</code></td>
+<td>Integrated, reviewed, tested</td>
+</tr>
+<tr>
+<td><code>production</code></td>
+<td>The commit we chose to release</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> push origin main:production</span></code></pre></div>
+<p>Merging decides about the code. Promoting decides about timing.</p>
+</section>
+<section><h2 id="the-release-pipeline">The release pipeline</h2>
+<p><img class="diagram" src="slide-assets/release-pipeline.svg" alt="A push to production starts test, build, and deploy jobs in order."></p>
+<p><code>needs:</code> makes each job wait for the one before it.</p>
+</section>
+<section><h2 id="test-again-on-the-release-commit">Test again on the release
+commit</h2>
+<p><code>main</code> passed. Why run pytest again?</p>
+<p><strong>The evidence should belong to the commit that
+ships.</strong></p>
+<p>Someone can push <code>production</code> without going through
+<code>main</code>.</p>
+</section>
+<section><h2 id="try-this-run-the-pieces-locally">Try this: run the pieces
+locally</h2>
+<p>Copy <code>code/calculator/</code> into the sandbox repository.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> pip install <span class="at">-r</span> requirements-dev.txt</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> pytest <span class="at">-q</span></span></code></pre></div>
+<p>Expected: <strong>10 passed</strong>.</p>
+</section>
+<section><h2 id="build-once-ship-the-archive">Build once, ship the archive</h2>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>calculator.py</code></td>
+<td>The program</td>
+</tr>
+<tr>
+<td><code>VERSION</code></td>
+<td>Full commit identifier</td>
+</tr>
+<tr>
+<td><code>smoke_test.sh</code></td>
+<td>Quick check where it lands</td>
+</tr>
+</tbody>
+</table>
+<p>Release id: first seven characters of the commit.</p>
+</section>
+<section><h2 id="test-the-archive-not-just-the-source">Test the archive, not just
+the source</h2>
+<p>pytest imports <code>add</code>. It never runs the command-line
+program.</p>
+<p>Unpack the archive; run <code>calculator.py 2 3</code>; expect
+<code>5.0</code>.</p>
+<p><strong>What can break in packaging that pytest cannot
+see?</strong></p>
+</section>
+<section><h2 id="keep-the-archive">Keep the archive</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">-</span><span class="at"> </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> actions/upload-artifact@v7</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">with</span><span class="kw">:</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">name</span><span class="kw">:</span><span class="at"> calculator-release</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">path</span><span class="kw">:</span><span class="at"> dist/</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">retention-days</span><span class="kw">:</span><span class="at"> </span><span class="dv">30</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">if-no-files-found</span><span class="kw">:</span><span class="at"> error</span></span></code></pre></div>
+<p>Deploy downloads this file. <strong>Nothing is rebuilt.</strong></p>
+</section>
+<section><h2 id="try-this-build-and-test-an-archive">Try this: build and test an
+archive</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">scripts/build_release.sh</span> abc1234 <span class="dt">\</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  0123456789012345678901234567890123456789</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">tar</span> <span class="at">-tzf</span> dist/calculator-abc1234.tar.gz</span></code></pre></div>
+<p>Unpack elsewhere; run <code>smoke_test.sh</code>.</p>
+<p>Remove <code>calculator.py</code> from the <code>tar</code> list: the
+smoke test fails, pytest still passes.</p>
+</section>
+<section><h2 id="a-basic-deployment-workflow">A basic deployment workflow</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">-</span><span class="at"> </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> shimataro/ssh-key-action@v2</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">-</span><span class="at"> </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> actions/checkout@v2</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="kw">-</span><span class="at"> </span><span class="fu">run</span><span class="kw">:</span><span class="at"> scp index.html root@example.org:/root/web</span></span></code></pre></div>
+<p>It works. What is missing?</p>
+</section>
+<section><h2 id="what-to-tighten">What to tighten</h2>
+<table>
+<thead>
+<tr>
+<th>Basic form</th>
+<th>This pipeline</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>No tests first</td>
+<td><code>needs: build</code>, after tests</td>
+</tr>
+<tr>
+<td>Logs in as <code>root</code></td>
+<td>Account owns one directory</td>
+</tr>
+<tr>
+<td>Host key checking off</td>
+<td>Server key pinned</td>
+</tr>
+<tr>
+<td>Loose files</td>
+<td>One checked archive</td>
+</tr>
+<tr>
+<td>Success when <code>scp</code> exits</td>
+<td>Success when the version matches</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section><h2 id="settings-the-workflow-needs">Settings the workflow needs</h2>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Kind</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>DEPLOY_HOST</code>, <code>DEPLOY_USER</code>,
+<code>DEPLOY_PATH</code></td>
+<td>Variables</td>
+</tr>
+<tr>
+<td><code>DEPLOY_SSH_KEY</code>, <code>DEPLOY_KNOWN_HOSTS</code></td>
+<td>Secrets</td>
+</tr>
+</tbody>
+</table>
+<p>Stored on the <code>production</code> environment.</p>
+</section>
+<section><h2 id="fail-before-touching-the-server">Fail before touching the
+server</h2>
+<p><code>scripts/check_deploy_config.sh</code> reports <strong>names,
+never values</strong>.</p>
+<ul>
+<li>every setting present</li>
+<li>account is not <code>root</code></li>
+<li>path absolute, not a system directory</li>
+<li>key looks like a private key</li>
+<li>known-hosts entry matches the host</li>
+</ul>
+</section>
+<section><h2 id="two-decisions-about-trust">Two decisions about trust</h2>
+<p><strong>Check who answers.</strong>
+<code>StrictHostKeyChecking yes</code> with the real host key.</p>
+<p><strong>Limit what the key can do.</strong> One account, one
+directory, a key made for this purpose.</p>
+<p>Pin third-party actions to full commit identifiers.</p>
+</section>
+<section><h2 id="try-this-prepare-a-target">Try this: prepare a target</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh-keygen</span> <span class="at">-t</span> ed25519 <span class="at">-N</span> <span class="st">&#39;&#39;</span> <span class="at">-f</span> deploy_key</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh-keyscan</span> <span class="at">-t</span> ed25519 HOST <span class="op">&gt;</span> known_hosts</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh-keygen</span> <span class="at">-lf</span> known_hosts</span></code></pre></div>
+<p>Compare the fingerprint with one from the server’s owner.</p>
+<p>Store variables and secrets with
+<code>gh ... --env production</code>. Keep the key out of the
+repository.</p>
+</section>
+<section><h2 id="install-on-the-server">Install on the server</h2>
+<pre class="text"><code>/srv/calculator/
+  incoming/   archive + checksum
+  releases/   abc1234/  def5678/
+  current  -&gt; releases/def5678
+  previous    abc1234</code></pre>
+<p>Verify checksum, unpack to staging, smoke test, move, <strong>switch
+<code>current</code></strong>, smoke test again.</p>
+</section>
+<section><h2 id="confirm-what-is-running">Confirm what is running</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> target <span class="st">&quot;cat </span><span class="va">$DEPLOY_PATH</span><span class="st">/current/VERSION&quot;</span></span></code></pre></div>
+<p>Compare with the commit being released.</p>
+<p><strong>A successful copy shows bytes arrived. This shows the right
+version is live.</strong></p>
+</section>
+<section><h2 id="release-is-a-decision">Release is a decision</h2>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Control</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Concurrency group</td>
+<td>One release at a time</td>
+</tr>
+<tr>
+<td>Required reviewers on <code>production</code></td>
+<td>Pause for approval before deploy</td>
+</tr>
+<tr>
+<td>Protected <code>production</code> branch</td>
+<td>Only named people promote</td>
+</tr>
+</tbody>
+</table>
+<p><strong>What would change if every merge deployed
+itself?</strong></p>
+</section>
+<section><h2 id="try-this-make-the-first-release">Try this: make the first
+release</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> push origin main:production</span></code></pre></div>
+<p>In Actions, find: <strong>10 passed</strong>, the smoke test line,
+the <code>calculator-release</code> artifact, and
+<code>Server is running &lt;commit&gt;</code>.</p>
+<p>Then check the server yourself.</p>
+</section>
+<section><h2 id="where-does-a-bad-change-stop">Where does a bad change stop?</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Change</th>
+<th>Stops at</th>
+<th>Server</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Wrong test assertion</td>
+<td><code>test</code></td>
+<td>Unchanged</td>
+</tr>
+<tr>
+<td><code>DEPLOY_PATH</code> removed</td>
+<td><code>deploy</code> settings check</td>
+<td>Unchanged</td>
+</tr>
+<tr>
+<td><code>calculator.py</code> left out of the archive</td>
+<td><code>build</code> smoke test</td>
+<td>Unchanged</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section><h2 id="recover-from-a-failed-release">Recover from a failed
+release</h2>
+<ol type="1">
+<li><strong>Restore service.</strong> Activate the last good
+release.</li>
+<li><strong>Record what happened.</strong> Release, symptom, who
+decided.</li>
+<li><strong>Repair the source.</strong> Revert or fix through a pull
+request; promote again.</li>
+</ol>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> deploy@HOST <span class="st">&quot;bash -s -- /srv/calculator abc1234 activate&quot;</span> <span class="dt">\</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="op">&lt;</span> scripts/remote_install.sh</span></code></pre></div>
+</section>
+<section><h2 id="what-going-back-cannot-undo">What going back cannot undo</h2>
+<p>A symlink switch restores code.</p>
+<p><strong>It does not restore data.</strong></p>
+<p><code>production</code> now names a commit that is not running.</p>
+<p>Older than the server’s five releases? Redeploy by <code>ref</code>,
+or rebuild from the commit.</p>
+</section>
+<section><h2 id="try-this-release-twice-then-go-back">Try this: release twice,
+then go back</h2>
+<p>Merge a harmless change; promote; confirm two releases exist.</p>
+<p>Activate the first. Check <code>current/VERSION</code>.</p>
+<p><strong>What should happen next, and what record do you
+leave?</strong></p>
+</section>
+<section><h2 id="product-presentation">Product presentation</h2>
+<p>Show the path, not the claim:</p>
+<ul>
+<li>one Actions run with test, build, deploy</li>
+<li>the archive and its release id</li>
+<li><code>VERSION</code> on the running product</li>
+<li>a rehearsed recovery</li>
+<li>what is not automated</li>
+</ul>
+</section>
+<section><h2 id="what-a-green-run-does-not-show">What a green run does not
+show</h2>
+<p>Tests passed. The archive unpacks. One example ran on the server. The
+version matches.</p>
+<p><strong>Not shown:</strong> users are satisfied, the server stays
+healthy, the requirement was right.</p>
+</section></div></div>
+<script src="slide-assets/reveal.js"></script>
+<script>Reveal.initialize({width:1280,height:720,margin:0.05,center:true,hash:true,slideNumber:true,transition:'none'});</script>
+</body></html>

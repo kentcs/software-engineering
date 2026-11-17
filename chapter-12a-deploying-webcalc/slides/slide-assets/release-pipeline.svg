@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="360" viewBox="0 0 1120 360">
+<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8" fill="none" stroke="#17675d" stroke-width="1.4"/></marker></defs>
+<g fill="none" stroke="#17675d" stroke-width="4">
+<path d="M190 100 H250" marker-end="url(#arrow)"/>
+<path d="M480 100 H540" marker-end="url(#arrow)"/>
+<path d="M770 100 H830" marker-end="url(#arrow)"/>
+</g>
+<g fill="#fcfbf7" stroke="#17675d" stroke-width="4">
+<rect x="20" y="55" width="170" height="90" rx="10"/>
+<rect x="250" y="55" width="230" height="90" rx="10"/>
+<rect x="540" y="55" width="230" height="90" rx="10"/>
+<rect x="830" y="55" width="270" height="90" rx="10"/>
+</g>
+<g font-family="Georgia,serif" fill="#23322e" text-anchor="middle">
+<text x="105" y="94" font-size="26">push to</text><text x="105" y="127" font-size="24" font-weight="bold">production</text>
+<text x="365" y="112" font-size="32" font-weight="bold">test</text>
+<text x="655" y="112" font-size="32" font-weight="bold">build</text>
+<text x="965" y="112" font-size="32" font-weight="bold">deploy</text>
+<text x="365" y="200" font-size="26">pytest on the</text><text x="365" y="232" font-size="26">release commit</text>
+<text x="655" y="200" font-size="26">archive + checksum</text><text x="655" y="232" font-size="26">smoke test, keep copy</text>
+<text x="965" y="200" font-size="26">check settings, upload</text><text x="965" y="232" font-size="26">install, switch, confirm</text>
+<text x="560" y="320" font-size="28" fill="#17675d">Each job starts only if the one before it passed</text>
+</g></svg>

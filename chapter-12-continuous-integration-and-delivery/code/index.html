@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Code: Continuous Integration and Continuous Delivery</title>
+<style>
+* { box-sizing: border-box; }
+body { margin: 0; color: #172b36; background: #f5f7f9; font: 16px/1.5 system-ui, sans-serif; }
+main { max-width: 1600px; margin: auto; padding: 24px; }
+a { color: #12647a; }
+h1 { font-size: 26px; margin: 8px 0 20px; }
+.browser { display: grid; grid-template-columns: 270px minmax(0, 1fr); height: calc(100vh - 140px); min-height: 400px; border: 1px solid #ccd6dc; border-radius: 8px; overflow: hidden; background: white; }
+nav { overflow: auto; background: #edf2f5; border-right: 1px solid #ccd6dc; padding: 12px; }
+nav ul { list-style: none; padding: 0; margin: 0; }
+nav a { display: block; padding: 9px 10px; text-decoration: none; border-radius: 4px; overflow-wrap: anywhere; font: 14px/1.5 ui-monospace, monospace; }
+nav a:hover { background: #dfe9ed; }
+nav a[aria-current="true"] { background: #155e75; color: white; }
+a:focus-visible { outline: 3px solid #d18a00; outline-offset: -3px; }
+.viewer { min-width: 0; min-height: 0; }
+.source-file { height: 100%; display: flex; flex-direction: column; }
+.source-file[hidden] { display: none; }
+.file-header { padding: 12px 18px; border-bottom: 1px solid #ccd6dc; }
+h2 { font: 600 16px/1.5 ui-monospace, monospace; margin: 0; overflow-wrap: anywhere; }
+pre { flex: 1; min-height: 0; overflow: auto; margin: 0; padding: 20px; background: #fafbfc; tab-size: 4; }
+code { font: 14px/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+.binary { padding: 20px; }
+@media(max-width: 700px) { main { padding: 12px; } h1 { font-size: 21px; } .browser { grid-template-columns: 1fr; grid-template-rows: 160px minmax(0, 1fr); height: calc(100dvh - 130px); min-height: 480px; } nav { border-right: 0; border-bottom: 1px solid #ccd6dc; } }
+</style>
+</head>
+<body>
+<main>
+<a href="../index.html">Back to chapter</a>
+<h1>Continuous Integration and Continuous Delivery: Code</h1>
+<div class="browser">
+<nav aria-label="Files"><ul><li><a href="#file-63616c63756c61746f722f2e6769746875622f776f726b666c6f77732f72656c656173652e796d6c">calculator/.github/workflows/release.yml</a></li>
+<li><a href="#file-63616c63756c61746f722f2e6769746875622f776f726b666c6f77732f74657374732e796d6c">calculator/.github/workflows/tests.yml</a></li>
+<li><a href="#file-63616c63756c61746f722f2e67697469676e6f7265">calculator/.gitignore</a></li>
+<li><a href="#file-63616c63756c61746f722f63616c63756c61746f722e7079">calculator/calculator.py</a></li>
+<li><a href="#file-63616c63756c61746f722f726571756972656d656e74732d6465762e747874">calculator/requirements-dev.txt</a></li>
+<li><a href="#file-63616c63756c61746f722f736372697074732f6275696c645f72656c656173652e7368">calculator/scripts/build_release.sh</a></li>
+<li><a href="#file-63616c63756c61746f722f736372697074732f636865636b5f6465706c6f795f636f6e6669672e7368">calculator/scripts/check_deploy_config.sh</a></li>
+<li><a href="#file-63616c63756c61746f722f736372697074732f72656d6f74655f696e7374616c6c2e7368">calculator/scripts/remote_install.sh</a></li>
+<li><a href="#file-63616c63756c61746f722f736372697074732f736d6f6b655f746573742e7368">calculator/scripts/smoke_test.sh</a></li>
+<li><a href="#file-63616c63756c61746f722f746573745f63616c63756c61746f722e7079">calculator/test_calculator.py</a></li></ul></nav>
+<div class="viewer"><section class="source-file" id="file-63616c63756c61746f722f2e6769746875622f776f726b666c6f77732f72656c656173652e796d6c" aria-labelledby="title-file-63616c63756c61746f722f2e6769746875622f776f726b666c6f77732f72656c656173652e796d6c"><header class="file-header"><h2 id="title-file-63616c63756c61746f722f2e6769746875622f776f726b666c6f77732f72656c656173652e796d6c">calculator/.github/workflows/release.yml</h2></header><pre><code>name: Release calculator
+
+on:
+  push:
+    branches: [production]
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Commit to release (blank uses the selected branch)'
+        required: false
+
+permissions:
+  contents: read
+
+# One release at a time; a second run waits instead of overlapping the first.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+      - name: Install test dependencies
+        run: python -m pip install -r requirements-dev.txt
+      - name: Run calculator tests
+        run: python -m pytest -q
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    outputs:
+      release_id: ${{ steps.id.outputs.release_id }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+      - name: Name the release after the commit
+        id: id
+        run: echo "release_id=$(git rev-parse --short=7 HEAD)" &gt;&gt; "$GITHUB_OUTPUT"
+      - name: Build the release archive
+        run: scripts/build_release.sh "${{ steps.id.outputs.release_id }}" "$(git rev-parse HEAD)"
+      - name: Smoke-test the archive, not just the source
+        run: |
+          mkdir unpacked
+          tar -xzf "dist/calculator-${{ steps.id.outputs.release_id }}.tar.gz" -C unpacked
+          unpacked/smoke_test.sh unpacked
+      - name: Keep the archive with this run
+        uses: actions/upload-artifact@v7
+        with:
+          name: calculator-release
+          path: dist/
+          retention-days: 30
+          if-no-files-found: error
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: production
+    env:
+      DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
+      DEPLOY_USER: ${{ vars.DEPLOY_USER }}
+      DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
+      DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+      DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+      RELEASE_ID: ${{ needs.build.outputs.release_id }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+      - name: Check deployment settings
+        run: scripts/check_deploy_config.sh
+      - uses: actions/download-artifact@v8
+        with:
+          name: calculator-release
+          path: dist
+      - name: Set up SSH
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" &gt; ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" &gt; ~/.ssh/known_hosts
+          cat &gt; ~/.ssh/config &lt;&lt;CONFIG
+          Host target
+            HostName $DEPLOY_HOST
+            User $DEPLOY_USER
+            IdentityFile ~/.ssh/deploy_key
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+          CONFIG
+      - name: Upload the archive
+        run: |
+          ssh target "mkdir -p '$DEPLOY_PATH/incoming'"
+          scp dist/calculator-$RELEASE_ID.tar.gz dist/calculator-$RELEASE_ID.tar.gz.sha256 \
+            "target:$DEPLOY_PATH/incoming/"
+      - name: Install and activate the release
+        run: ssh target "bash -s -- '$DEPLOY_PATH' '$RELEASE_ID' install" &lt; scripts/remote_install.sh
+      - name: Confirm the running version
+        run: |
+          running="$(ssh target "cat '$DEPLOY_PATH/current/VERSION'")"
+          echo "Server is running $running"
+          test "$running" = "$(git rev-parse HEAD)"
+</code></pre></section>
+<section class="source-file" id="file-63616c63756c61746f722f2e6769746875622f776f726b666c6f77732f74657374732e796d6c" aria-labelledby="title-file-63616c63756c61746f722f2e6769746875622f776f726b666c6f77732f74657374732e796d6c" hidden><header class="file-header"><h2 id="title-file-63616c63756c61746f722f2e6769746875622f776f726b666c6f77732f74657374732e796d6c">calculator/.github/workflows/tests.yml</h2></header><pre><code>name: Calculator CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  calculator-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+      - name: Install test dependencies
+        run: python -m pip install -r requirements-dev.txt
+      - name: Run calculator tests
+        run: python -m pytest -q
+</code></pre></section>
+<section class="source-file" id="file-63616c63756c61746f722f2e67697469676e6f7265" aria-labelledby="title-file-63616c63756c61746f722f2e67697469676e6f7265" hidden><header class="file-header"><h2 id="title-file-63616c63756c61746f722f2e67697469676e6f7265">calculator/.gitignore</h2></header><pre><code>.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+dist/
+</code></pre></section>
+<section class="source-file" id="file-63616c63756c61746f722f63616c63756c61746f722e7079" aria-labelledby="title-file-63616c63756c61746f722f63616c63756c61746f722e7079" hidden><header class="file-header"><h2 id="title-file-63616c63756c61746f722f63616c63756c61746f722e7079">calculator/calculator.py</h2></header><pre><code>"""Small addition calculator adapted from the earlier testing exercise."""
+import argparse
+
+
+def add(left, right):
+    return left + right
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Add two numbers.")
+    parser.add_argument("left", type=float)
+    parser.add_argument("right", type=float)
+    args = parser.parse_args()
+    print(add(args.left, args.right))
+
+
+if __name__ == "__main__":
+    main()
+</code></pre></section>
+<section class="source-file" id="file-63616c63756c61746f722f726571756972656d656e74732d6465762e747874" aria-labelledby="title-file-63616c63756c61746f722f726571756972656d656e74732d6465762e747874" hidden><header class="file-header"><h2 id="title-file-63616c63756c61746f722f726571756972656d656e74732d6465762e747874">calculator/requirements-dev.txt</h2></header><pre><code>pytest==9.0.2
+</code></pre></section>
+<section class="source-file" id="file-63616c63756c61746f722f736372697074732f6275696c645f72656c656173652e7368" aria-labelledby="title-file-63616c63756c61746f722f736372697074732f6275696c645f72656c656173652e7368" hidden><header class="file-header"><h2 id="title-file-63616c63756c61746f722f736372697074732f6275696c645f72656c656173652e7368">calculator/scripts/build_release.sh</h2></header><pre><code>#!/usr/bin/env bash
+# Build the release artifact: dist/calculator-&lt;release-id&gt;.tar.gz and its checksum.
+# Usage: scripts/build_release.sh RELEASE_ID FULL_COMMIT_ID
+set -euo pipefail
+
+release_id="${1:?usage: build_release.sh RELEASE_ID FULL_COMMIT_ID}"
+commit="${2:?usage: build_release.sh RELEASE_ID FULL_COMMIT_ID}"
+
+root="$(cd "$(dirname "$0")/.." &amp;&amp; pwd)"
+stage="$(mktemp -d)"
+trap 'rm -rf "$stage"' EXIT
+
+mkdir -p "$root/dist"
+cp "$root/calculator.py" "$stage/"
+cp "$root/scripts/smoke_test.sh" "$stage/"
+printf '%s\n' "$commit" &gt; "$stage/VERSION"
+
+archive="$root/dist/calculator-$release_id.tar.gz"
+tar -czf "$archive" -C "$stage" VERSION calculator.py smoke_test.sh
+
+cd "$root/dist"
+if command -v sha256sum &gt;/dev/null; then
+  sha256sum "calculator-$release_id.tar.gz" &gt; "calculator-$release_id.tar.gz.sha256"
+else
+  shasum -a 256 "calculator-$release_id.tar.gz" &gt; "calculator-$release_id.tar.gz.sha256"
+fi
+echo "Built $archive"
+</code></pre></section>
+<section class="source-file" id="file-63616c63756c61746f722f736372697074732f636865636b5f6465706c6f795f636f6e6669672e7368" aria-labelledby="title-file-63616c63756c61746f722f736372697074732f636865636b5f6465706c6f795f636f6e6669672e7368" hidden><header class="file-header"><h2 id="title-file-63616c63756c61746f722f736372697074732f636865636b5f6465706c6f795f636f6e6669672e7368">calculator/scripts/check_deploy_config.sh</h2></header><pre><code>#!/usr/bin/env bash
+# Check the deployment settings before anything touches the server.
+# Reports names and problems only; it never prints a secret value.
+set -uo pipefail
+
+problems=0
+fail() { echo "CONFIG ERROR: $1" &gt;&amp;2; problems=$((problems + 1)); }
+
+for name in DEPLOY_HOST DEPLOY_USER DEPLOY_PATH DEPLOY_SSH_KEY DEPLOY_KNOWN_HOSTS; do
+  if [ -z "${!name:-}" ]; then
+    fail "$name is not set"
+  fi
+done
+
+host="${DEPLOY_HOST:-}"
+user="${DEPLOY_USER:-}"
+path="${DEPLOY_PATH:-}"
+
+if [ -n "$host" ] &amp;&amp; ! [[ "$host" =~ ^[A-Za-z0-9.-]+$ ]]; then
+  fail "DEPLOY_HOST should be a host name or address with no user or port"
+fi
+if [ "$user" = "root" ]; then
+  fail "DEPLOY_USER is root; use an account that can write only the deployment directory"
+fi
+if [ -n "$path" ]; then
+  case "$path" in
+    /|/root|/home|/usr|/etc|/var) fail "DEPLOY_PATH points at a system directory" ;;
+    /*) ;;
+    *) fail "DEPLOY_PATH must be an absolute path" ;;
+  esac
+fi
+if [ -n "${DEPLOY_SSH_KEY:-}" ] &amp;&amp; ! printf '%s' "$DEPLOY_SSH_KEY" | grep -q 'BEGIN .*PRIVATE KEY'; then
+  fail "DEPLOY_SSH_KEY does not look like a private key"
+fi
+if [ -n "${DEPLOY_KNOWN_HOSTS:-}" ] &amp;&amp; [ -n "$host" ] \
+   &amp;&amp; ! printf '%s' "$DEPLOY_KNOWN_HOSTS" | grep -qF "$host"; then
+  fail "DEPLOY_KNOWN_HOSTS has no entry for $host"
+fi
+
+if [ "$problems" -gt 0 ]; then
+  echo "Deployment stopped: $problems configuration problem(s)." &gt;&amp;2
+  exit 1
+fi
+echo "Deployment configuration looks complete for $user@$host:$path"
+</code></pre></section>
+<section class="source-file" id="file-63616c63756c61746f722f736372697074732f72656d6f74655f696e7374616c6c2e7368" aria-labelledby="title-file-63616c63756c61746f722f736372697074732f72656d6f74655f696e7374616c6c2e7368" hidden><header class="file-header"><h2 id="title-file-63616c63756c61746f722f736372697074732f72656d6f74655f696e7374616c6c2e7368">calculator/scripts/remote_install.sh</h2></header><pre><code>#!/usr/bin/env bash
+# Runs on the server. Unpack an uploaded release, check it, and make it current.
+# Usage: remote_install.sh BASE_DIRECTORY RELEASE_ID [install|activate]
+#   install   unpack BASE/incoming/calculator-ID.tar.gz, smoke-test, switch "current"
+#   activate  switch "current" to a release already in BASE/releases (recovery)
+set -euo pipefail
+
+base="${1:?usage: remote_install.sh BASE_DIRECTORY RELEASE_ID [install|activate]}"
+id="${2:?usage: remote_install.sh BASE_DIRECTORY RELEASE_ID [install|activate]}"
+mode="${3:-install}"
+keep=5
+
+releases="$base/releases"
+mkdir -p "$releases" "$base/incoming"
+
+sha_check() {
+  if command -v sha256sum &gt;/dev/null; then sha256sum -c "$1"; else shasum -a 256 -c "$1"; fi
+}
+
+activate() {
+  local target="$releases/$1"
+  [ -d "$target" ] || { echo "No such release: $1" &gt;&amp;2; exit 1; }
+  if [ -L "$base/current" ]; then
+    basename "$(readlink "$base/current")" &gt; "$base/previous"
+  fi
+  ln -sfn "$target" "$base/current"
+  echo "current -&gt; $1"
+}
+
+case "$mode" in
+  install)
+    archive="$base/incoming/calculator-$id.tar.gz"
+    (cd "$base/incoming" &amp;&amp; sha_check "calculator-$id.tar.gz.sha256")
+    staging="$releases/.staging-$id"
+    rm -rf "$staging"
+    mkdir -p "$staging"
+    tar -xzf "$archive" -C "$staging"
+    "$staging/smoke_test.sh" "$staging"
+    rm -rf "$releases/$id"
+    mv "$staging" "$releases/$id"
+    activate "$id"
+    "$base/current/smoke_test.sh" "$base/current"
+    # Keep the newest releases so a recent one is still there to go back to.
+    ls -1t "$releases" | tail -n +$((keep + 1)) | while read -r old; do
+      [ "$old" = "$id" ] || rm -rf "${releases:?}/$old"
+    done
+    ;;
+  activate)
+    activate "$id"
+    "$base/current/smoke_test.sh" "$base/current"
+    ;;
+  *)
+    echo "Unknown mode: $mode" &gt;&amp;2
+    exit 2
+    ;;
+esac
+</code></pre></section>
+<section class="source-file" id="file-63616c63756c61746f722f736372697074732f736d6f6b655f746573742e7368" aria-labelledby="title-file-63616c63756c61746f722f736372697074732f736d6f6b655f746573742e7368" hidden><header class="file-header"><h2 id="title-file-63616c63756c61746f722f736372697074732f736d6f6b655f746573742e7368">calculator/scripts/smoke_test.sh</h2></header><pre><code>#!/usr/bin/env bash
+# Run the calculator from an unpacked release and check one known answer.
+# Usage: smoke_test.sh RELEASE_DIRECTORY
+set -euo pipefail
+
+dir="${1:?usage: smoke_test.sh RELEASE_DIRECTORY}"
+expected="5.0"
+actual="$(python3 "$dir/calculator.py" 2 3)"
+
+if [ "$actual" != "$expected" ]; then
+  echo "Smoke test failed in $dir: 2 + 3 gave '$actual', expected '$expected'" &gt;&amp;2
+  exit 1
+fi
+echo "Smoke test passed in $dir (version $(cat "$dir/VERSION"))"
+</code></pre></section>
+<section class="source-file" id="file-63616c63756c61746f722f746573745f63616c63756c61746f722e7079" aria-labelledby="title-file-63616c63756c61746f722f746573745f63616c63756c61746f722e7079" hidden><header class="file-header"><h2 id="title-file-63616c63756c61746f722f746573745f63616c63756c61746f722e7079">calculator/test_calculator.py</h2></header><pre><code>"""Examples of agreed calculator behavior, including regression cases."""
+import pytest
+from calculator import add
+
+
+@pytest.mark.parametrize("left,right,expected", [
+    (2, 2, 4),
+    (3, 3, 6),
+    (2, 3, 5),
+    (3, 2, 5),
+    (-2, -3, -5),
+    (-2, 3, 1),
+    (2, -3, -1),
+    (0, 7, 7),
+    (7, 0, 7),
+])
+def test_add(left, right, expected):
+    assert add(left, right) == expected
+
+
+def test_decimal_addition():
+    assert add(3.1, 4.2) == pytest.approx(7.3)
+</code></pre></section></div>
+</div>
+<p>The files are available in the <a href="https://github.com/kentcs/software-engineering/tree/main/chapter-12-continuous-integration-and-delivery/code">course repository</a>.</p>
+</main>
+<script>
+const links = [...document.querySelectorAll('nav a')];
+const panels = [...document.querySelectorAll('.source-file')];
+function showFile() {
+ const selected = links.find(link => link.hash === location.hash) || links[0];
+ if (!selected) return;
+ for (const link of links) link === selected ? link.setAttribute('aria-current', 'true') : link.removeAttribute('aria-current');
+ for (const panel of panels) panel.hidden = '#' + panel.id !== selected.hash;
+}
+window.addEventListener('hashchange', showFile);
+showFile();
+</script>
+</body>
+</html>
